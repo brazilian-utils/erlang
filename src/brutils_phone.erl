@@ -9,7 +9,7 @@
 -module(brutils_phone).
 
 -export([remove_symbols/1, is_valid/1, is_valid/2, format/1,
-         remove_international_dialing_code/1]).
+         remove_international_dialing_code/1, generate/0, generate/1]).
 
 -type phone_type() :: mobile | landline.
 -export_type([phone_type/0]).
@@ -143,9 +143,51 @@ remove_international_dialing_code(Phone) when is_binary(Phone) ->
             Phone
     end.
 
+%% @doc Generates a random valid phone number of a random type
+%% (mobile or landline, equal probability).
+%%
+%% ```
+%% 1> brutils_phone:generate().
+%% <<"4545670536">>
+%% '''
+-spec generate() -> binary().
+generate() ->
+    case rand:uniform(2) of
+        1 -> generate(mobile);
+        2 -> generate(landline)
+    end.
+
+%% @doc Generates a random valid phone number of the given type.
+%%
+%% Mobile: a DDD of two digits from 1 to 9, then `9', then 8 uniform
+%% digits. Landline: the DDD, then a digit from 2 to 5, then 7
+%% uniform digits. The result always satisfies
+%% {@link is_valid/2} for the requested type.
+%%
+%% ```
+%% 1> brutils_phone:generate(mobile).
+%% <<"89918945257">>
+%% 2> brutils_phone:generate(landline).
+%% <<"5747087233">>
+%% '''
+-spec generate(phone_type()) -> binary().
+generate(mobile) ->
+    <<(ddd())/binary, $9, (digits(8))/binary>>;
+generate(landline) ->
+    <<(ddd())/binary, ($1 + rand:uniform(4)), (digits(7))/binary>>.
+
 %%--------------------------------------------------------------------
 %% Internal
 %%--------------------------------------------------------------------
+
+%% Two DDD digits, each 1..9.
+-spec ddd() -> binary().
+ddd() ->
+    <<($0 + rand:uniform(9)), ($0 + rand:uniform(9))>>.
+
+-spec digits(pos_integer()) -> binary().
+digits(N) ->
+    << <<($0 + rand:uniform(10) - 1)>> || _ <- lists:seq(1, N) >>.
 
 -spec all_digits(binary()) -> boolean().
 all_digits(<<C, Rest/binary>>) when C >= $0, C =< $9 -> all_digits(Rest);

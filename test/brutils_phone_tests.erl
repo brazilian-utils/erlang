@@ -175,3 +175,44 @@ dialing_code_keeps_spaces_test() ->
 dialing_code_non_binary_is_out_of_contract_test() ->
     ?assertError(function_clause,
                  brutils_phone:remove_international_dialing_code(5511994029275)).
+
+%%--------------------------------------------------------------------
+%% generate/0,1
+%%--------------------------------------------------------------------
+
+generate_mobile_produces_valid_mobiles_test() ->
+    lists:foreach(
+      fun(_) ->
+              Phone = brutils_phone:generate(mobile),
+              ?assertEqual(11, byte_size(Phone)),
+              ?assert(brutils_phone:is_valid(Phone, mobile))
+      end,
+      lists:seq(1, 100)).
+
+generate_landline_produces_valid_landlines_test() ->
+    lists:foreach(
+      fun(_) ->
+              Phone = brutils_phone:generate(landline),
+              ?assertEqual(10, byte_size(Phone)),
+              ?assert(brutils_phone:is_valid(Phone, landline))
+      end,
+      lists:seq(1, 100)).
+
+generate_untyped_produces_both_types_test() ->
+    %% statistical smoke with a generous bound: over 200 draws with
+    %% p=1/2 each, seeing fewer than 10 of either type is
+    %% astronomically unlikely
+    Sizes = [byte_size(brutils_phone:generate()) || _ <- lists:seq(1, 200)],
+    Mobiles = length([S || S <- Sizes, S =:= 11]),
+    Landlines = length([S || S <- Sizes, S =:= 10]),
+    ?assertEqual(200, Mobiles + Landlines),
+    ?assert(Mobiles >= 10),
+    ?assert(Landlines >= 10).
+
+generate_untyped_is_valid_test() ->
+    lists:foreach(
+      fun(_) -> ?assert(brutils_phone:is_valid(brutils_phone:generate())) end,
+      lists:seq(1, 100)).
+
+generate_unknown_type_is_out_of_contract_test() ->
+    ?assertError(function_clause, brutils_phone:generate(cellphone)).
