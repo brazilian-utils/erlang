@@ -101,8 +101,10 @@ is_valid(_, landline) ->
 format(Phone) when is_binary(Phone) ->
     case is_valid(Phone) of
         true ->
-            Split = byte_size(Phone) - 4,
-            <<Ddd:2/binary, Head:(Split - 2)/binary, Tail:4/binary>> = Phone,
+            %% 2 DDD digits in front, 4 digits after the dash; the
+            %% head is whatever sits between (5 mobile, 4 landline)
+            HeadLen = byte_size(Phone) - 6,
+            <<Ddd:2/binary, Head:HeadLen/binary, Tail:4/binary>> = Phone,
             {ok, <<$(, Ddd/binary, $), Head/binary, $-, Tail/binary>>};
         false ->
             {error, invalid}
