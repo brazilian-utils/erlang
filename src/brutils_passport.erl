@@ -93,12 +93,15 @@ format(Passport) when is_binary(Passport) ->
 %% '''
 -spec generate() -> passport().
 generate() ->
-    <<($A + rand:uniform(26) - 1), ($A + rand:uniform(26) - 1),
-      (digits(6))/binary>>.
+    <<(upper_char()), (upper_char()), (digits(6))/binary>>.
 
 %%--------------------------------------------------------------------
 %% Internal
 %%--------------------------------------------------------------------
+
+-spec upper_char() -> byte().
+upper_char() ->
+    $A + rand:uniform(26) - 1.
 
 -spec digits(pos_integer()) -> binary().
 digits(N) ->
@@ -108,10 +111,11 @@ digits(N) ->
 %% (multibyte input therefore simply fails the later validation).
 -spec ascii_uppercase(binary()) -> binary().
 ascii_uppercase(Bin) ->
-    << <<(case C >= $a andalso C =< $z of
-              true -> C - 32;
-              false -> C
-          end)>> || <<C>> <= Bin >>.
+    << <<(upcase(C))>> || <<C>> <= Bin >>.
+
+-spec upcase(byte()) -> byte().
+upcase(C) when C >= $a, C =< $z -> C - 32;
+upcase(C) -> C.
 
 -spec all_digits(binary()) -> boolean().
 all_digits(<<C, Rest/binary>>) when C >= $0, C =< $9 -> all_digits(Rest);
