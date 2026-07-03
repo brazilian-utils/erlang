@@ -60,6 +60,12 @@ domain module directly.
   - [format_cep](#format_cep)
   - [remove_symbols_cep](#remove_symbols_cep)
   - [generate_cep](#generate_cep)
+- [Phone](#phone)
+  - [is_valid_phone](#is_valid_phone)
+  - [format_phone](#format_phone)
+  - [remove_symbols_phone](#remove_symbols_phone)
+  - [remove_international_dialing_code](#remove_international_dialing_code)
+  - [generate_phone](#generate_phone)
 
 ## CPF
 
@@ -506,6 +512,137 @@ Example:
 <<"22648357">>
 2> brutils:generate_cep().
 <<"98885103">>
+```
+
+## Phone
+
+Brazilian phone numbers are handled without the +55 country code and with
+the two-digit DDD (area code) included. Two shapes exist:
+
+| Type | Digits | Shape |
+|---|---|---|
+| mobile | 11 | DDD (1–9 each) + `9` + 8 digits |
+| landline | 10 | DDD (1–9 each) + one digit 2–5 + 7 digits |
+
+### is_valid_phone
+
+Returns whether the given phone number is valid — either shape for the
+one-argument form, or a specific one when the type atom (`mobile` or
+`landline`) is given. It does not verify that the number actually exists.
+Symbols are not stripped — clean the input with `remove_symbols_phone/1`
+first.
+
+Args:
+
+- `Phone` (`term()`): the phone number to be validated, digits only. Any
+  non-binary term returns `false` — the function never raises.
+- `Type` (`mobile | landline`, optional): restricts the check to one shape.
+  Any other value raises.
+
+Returns:
+
+- `boolean()`: `true` if the number matches the (requested) shape, `false`
+  otherwise.
+
+Example:
+
+```erlang
+1> brutils:is_valid_phone(<<"11994029275">>).
+true
+2> brutils:is_valid_phone(<<"1635014415">>).
+true
+3> brutils:is_valid_phone(<<"11994029275">>, mobile).
+true
+4> brutils:is_valid_phone(<<"11994029275">>, landline).
+false
+```
+
+### format_phone
+
+Formats a valid phone number for display: DDD in parentheses (no space
+after them) and a dash before the last four digits.
+
+Args:
+
+- `Phone` (`binary()`): a digits-only phone number.
+
+Returns:
+
+- `{ok, Formatted}` with the formatted number, or `{error, invalid}` if the
+  input is not a valid phone number.
+
+Example:
+
+```erlang
+1> brutils:format_phone(<<"11994029275">>).
+{ok,<<"(11)99402-9275">>}
+2> brutils:format_phone(<<"1635014415">>).
+{ok,<<"(16)3501-4415">>}
+```
+
+### remove_symbols_phone
+
+Removes common phone punctuation from a string: `(`, `)`, `-`, `+` and
+spaces. Dots are NOT removed.
+
+Args:
+
+- `Phone` (`binary()`): the phone number containing symbols to be removed.
+
+Returns:
+
+- `binary()`: a new binary with the specified symbols removed.
+
+Example:
+
+```erlang
+1> brutils:remove_symbols_phone(<<"+55 (11) 99402-9275">>).
+<<"5511994029275">>
+```
+
+### remove_international_dialing_code
+
+Removes the Brazilian international dialing code (`55`) from a phone
+number: if the input contains `55` and is longer than 11 characters
+(ignoring spaces), the first occurrence of `55` is removed; otherwise the
+input is returned unchanged. Note the sharp edges: a leading `+` is kept,
+and the removed `55` is the first occurrence wherever it sits.
+
+Args:
+
+- `Phone` (`binary()`): the phone number, possibly with the dialing code.
+
+Returns:
+
+- `binary()`: the number without the dialing code, or unchanged.
+
+Example:
+
+```erlang
+1> brutils:remove_international_dialing_code(<<"5511994029275">>).
+<<"11994029275">>
+2> brutils:remove_international_dialing_code(<<"+5511994029275">>).
+<<"+11994029275">>
+```
+
+### generate_phone
+
+Generates a random valid phone number — of a random type with no argument,
+or of the given type (`mobile` or `landline`).
+
+Returns:
+
+- `binary()`: a random valid phone number.
+
+Example:
+
+```erlang
+1> brutils:generate_phone().
+<<"38950126454">>
+2> brutils:generate_phone(mobile).
+<<"59956385883">>
+3> brutils:generate_phone(landline).
+<<"7529936607">>
 ```
 
 ## Author
