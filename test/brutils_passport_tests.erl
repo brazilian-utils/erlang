@@ -34,3 +34,46 @@ remove_symbols_already_clean_test() ->
 remove_symbols_non_binary_is_out_of_contract_test() ->
     ?assertError(function_clause, brutils_passport:remove_symbols("AB-123456")),
     ?assertError(function_clause, brutils_passport:remove_symbols(123456)).
+
+%%--------------------------------------------------------------------
+%% is_valid/1
+%%--------------------------------------------------------------------
+
+is_valid_accepts_conforming_passports_test() ->
+    ?assert(brutils_passport:is_valid(<<"AB123456">>)),
+    ?assert(brutils_passport:is_valid(<<"UE786447">>)),   % reference-generated
+    %% corners: no reserved values exist — pin the absence
+    ?assert(brutils_passport:is_valid(<<"AA000000">>)),
+    ?assert(brutils_passport:is_valid(<<"ZZ999999">>)).
+
+is_valid_rejects_mixed_case_despite_reference_docstring_test() ->
+    %% the reference docstring claims is_valid("Ab123456") is True,
+    %% but its regex is case-sensitive and the CODE returns False —
+    %% executed and confirmed; the port follows the code
+    ?assertNot(brutils_passport:is_valid(<<"Ab123456">>)),
+    ?assertNot(brutils_passport:is_valid(<<"ab123456">>)),
+    ?assertNot(brutils_passport:is_valid(<<"aB123456">>)).
+
+is_valid_rejects_position_swaps_test() ->
+    ?assertNot(brutils_passport:is_valid(<<"12345678">>)),   % all digits
+    ?assertNot(brutils_passport:is_valid(<<"1B123456">>)),   % digit in letter slot
+    ?assertNot(brutils_passport:is_valid(<<"A1123456">>)),
+    ?assertNot(brutils_passport:is_valid(<<"ABA23456">>)),   % letter in digit slot
+    ?assertNot(brutils_passport:is_valid(<<"AB12345A">>)),
+    ?assertNot(brutils_passport:is_valid(<<"ABC12345">>)).
+
+is_valid_rejects_wrong_length_test() ->
+    ?assertNot(brutils_passport:is_valid(<<>>)),
+    ?assertNot(brutils_passport:is_valid(<<"AB12345">>)),     % 7
+    ?assertNot(brutils_passport:is_valid(<<"AB1234567">>)).   % 9
+
+is_valid_rejects_symbols_test() ->
+    %% no stripping — clean with remove_symbols/1 or use format/1
+    ?assertNot(brutils_passport:is_valid(<<"AB-123456">>)),
+    ?assertNot(brutils_passport:is_valid(<<"AB 123456">>)).
+
+is_valid_rejects_non_binary_test() ->
+    ?assertNot(brutils_passport:is_valid(12345678)),
+    ?assertNot(brutils_passport:is_valid("AB123456")),   % charlist
+    ?assertNot(brutils_passport:is_valid(undefined)),
+    ?assertNot(brutils_passport:is_valid(#{})).
