@@ -129,3 +129,37 @@ generate_cep_test() ->
     Cep = brutils:generate_cep(),
     ?assertEqual(8, byte_size(Cep)),
     ?assert(brutils:is_valid_cep(Cep)).
+
+%%--------------------------------------------------------------------
+%% Phone
+%%--------------------------------------------------------------------
+
+is_valid_phone_test() ->
+    ?assert(brutils:is_valid_phone(<<"11994029275">>)),
+    ?assert(brutils:is_valid_phone(<<"1635014415">>)),
+    ?assertNot(brutils:is_valid_phone(<<"333333">>)),
+    ?assertNot(brutils:is_valid_phone(11994029275)).
+
+is_valid_phone_typed_test() ->
+    ?assert(brutils:is_valid_phone(<<"11994029275">>, mobile)),
+    ?assertNot(brutils:is_valid_phone(<<"11994029275">>, landline)).
+
+format_phone_test() ->
+    ?assertEqual({ok, <<"(11)99402-9275">>},
+                 brutils:format_phone(<<"11994029275">>)),
+    ?assertEqual({error, invalid}, brutils:format_phone(<<"333333">>)).
+
+remove_symbols_phone_test() ->
+    ?assertEqual(<<"5511994029275">>,
+                 brutils:remove_symbols_phone(<<"+55 (11) 99402-9275">>)).
+
+remove_international_dialing_code_test() ->
+    ?assertEqual(<<"11994029275">>,
+                 brutils:remove_international_dialing_code(<<"5511994029275">>)),
+    ?assertEqual(<<"1635014415">>,
+                 brutils:remove_international_dialing_code(<<"1635014415">>)).
+
+generate_phone_test() ->
+    ?assert(brutils:is_valid_phone(brutils:generate_phone())),
+    ?assert(brutils:is_valid_phone(brutils:generate_phone(mobile), mobile)),
+    ?assert(brutils:is_valid_phone(brutils:generate_phone(landline), landline)).

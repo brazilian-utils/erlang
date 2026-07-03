@@ -19,6 +19,10 @@
 -export([is_valid_renavam/1]).
 %% CEP
 -export([is_valid_cep/1, format_cep/1, remove_symbols_cep/1, generate_cep/0]).
+%% Phone
+-export([is_valid_phone/1, is_valid_phone/2, format_phone/1,
+         remove_symbols_phone/1, remove_international_dialing_code/1,
+         generate_phone/0, generate_phone/1]).
 
 %%--------------------------------------------------------------------
 %% CPF
@@ -173,3 +177,54 @@ remove_symbols_cep(Cep) ->
 -spec generate_cep() -> brutils_cep:cep().
 generate_cep() ->
     brutils_cep:generate().
+
+%%--------------------------------------------------------------------
+%% Phone
+%%--------------------------------------------------------------------
+
+%% @doc Returns whether the given term is a valid Brazilian phone
+%% number, mobile or landline.
+%% @see brutils_phone:is_valid/1
+-spec is_valid_phone(term()) -> boolean().
+is_valid_phone(Phone) ->
+    brutils_phone:is_valid(Phone).
+
+%% @doc Returns whether the given term is a valid Brazilian phone
+%% number of the given type (`mobile' or `landline').
+%% @see brutils_phone:is_valid/2
+-spec is_valid_phone(term(), brutils_phone:phone_type()) -> boolean().
+is_valid_phone(Phone, Type) ->
+    brutils_phone:is_valid(Phone, Type).
+
+%% @doc Formats a valid phone number for display
+%% (`<<"(DD)NNNNN-NNNN">>' / `<<"(DD)NNNN-NNNN">>').
+%% @see brutils_phone:format/1
+-spec format_phone(binary()) -> {ok, binary()} | {error, invalid}.
+format_phone(Phone) ->
+    brutils_phone:format(Phone).
+
+%% @doc Removes common phone punctuation: `(', `)', `-', `+' and
+%% spaces (dots are kept).
+%% @see brutils_phone:remove_symbols/1
+-spec remove_symbols_phone(binary()) -> binary().
+remove_symbols_phone(Phone) ->
+    brutils_phone:remove_symbols(Phone).
+
+%% @doc Removes the Brazilian international dialing code (`55') from
+%% a phone number; see the domain module for the sharp edges.
+%% @see brutils_phone:remove_international_dialing_code/1
+-spec remove_international_dialing_code(binary()) -> binary().
+remove_international_dialing_code(Phone) ->
+    brutils_phone:remove_international_dialing_code(Phone).
+
+%% @doc Generates a random valid phone number of a random type.
+%% @see brutils_phone:generate/0
+-spec generate_phone() -> binary().
+generate_phone() ->
+    brutils_phone:generate().
+
+%% @doc Generates a random valid phone number of the given type.
+%% @see brutils_phone:generate/1
+-spec generate_phone(brutils_phone:phone_type()) -> binary().
+generate_phone(Type) ->
+    brutils_phone:generate(Type).
