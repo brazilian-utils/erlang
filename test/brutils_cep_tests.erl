@@ -97,3 +97,21 @@ format_already_formatted_is_invalid_test() ->
 format_non_binary_is_out_of_contract_test() ->
     ?assertError(function_clause, brutils_cep:format(1310200)),
     ?assertError(function_clause, brutils_cep:format("01310200")).
+
+%%--------------------------------------------------------------------
+%% generate/0
+%%--------------------------------------------------------------------
+
+generate_produces_valid_ceps_test() ->
+    %% every 8-digit string is valid, so this is trivially strong
+    lists:foreach(
+      fun(_) ->
+              Cep = brutils_cep:generate(),
+              ?assertEqual(8, byte_size(Cep)),
+              ?assert(brutils_cep:is_valid(Cep))
+      end,
+      lists:seq(1, 100)).
+
+generate_is_random_test() ->
+    Ceps = [brutils_cep:generate() || _ <- lists:seq(1, 100)],
+    ?assert(length(lists:usort(Ceps)) > 1).

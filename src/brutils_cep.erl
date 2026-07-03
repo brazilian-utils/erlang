@@ -9,7 +9,7 @@
 %% significant, so a CEP is never handled as an integer.
 -module(brutils_cep).
 
--export([remove_symbols/1, is_valid/1, format/1]).
+-export([remove_symbols/1, is_valid/1, format/1, generate/0]).
 
 -type cep() :: <<_:64>>.
 %% A raw CEP: 8 ASCII digits, e.g. `<<"01310200">>'.
@@ -79,6 +79,20 @@ format(Cep) when is_binary(Cep) ->
         false ->
             {error, invalid}
     end.
+
+%% @doc Generates a random CEP as a raw, numbers-only binary.
+%%
+%% Each of the 8 digits is drawn independently, so the result may
+%% start with (or entirely be) zeros. With no check digit to compute,
+%% every output is valid by construction.
+%%
+%% ```
+%% 1> brutils_cep:generate().
+%% <<"31809498">>
+%% '''
+-spec generate() -> cep().
+generate() ->
+    << <<($0 + rand:uniform(10) - 1)>> || _ <- lists:seq(1, 8) >>.
 
 %%--------------------------------------------------------------------
 %% Internal
