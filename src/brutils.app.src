@@ -1,0 +1,14 @@
+{application, brutils, [
+    {description, "Utils library for specific Brazilian businesses"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib
+    ]},
+    {env, []},
+    {modules, []},
+    {licenses, ["MIT"]},
+    {maintainers, ["Camilo Cunha de Azevedo <camilotk@gmail.com>"]},
+    {links, []}
+ ]}.
