@@ -55,6 +55,11 @@ domain module directly.
   - [is_valid_cnh](#is_valid_cnh)
 - [RENAVAM](#renavam)
   - [is_valid_renavam](#is_valid_renavam)
+- [CEP](#cep)
+  - [is_valid_cep](#is_valid_cep)
+  - [format_cep](#format_cep)
+  - [remove_symbols_cep](#remove_symbols_cep)
+  - [generate_cep](#generate_cep)
 
 ## CPF
 
@@ -406,6 +411,101 @@ false
 false
 4> brutils:is_valid_renavam(<<"12345678 901">>).
 false
+```
+
+## CEP
+
+A CEP (Brazilian postal code) has no check digit: validation is purely
+structural — exactly 8 digits — and says nothing about whether the postal
+code actually exists. Address lookup functions (via the ViaCEP API) are
+planned for a future release.
+
+### is_valid_cep
+
+Returns whether the given CEP is valid: a binary of exactly 8 digits. Any
+8-digit sequence is structurally valid, including repeated ones like
+`<<"00000000">>`.
+
+Args:
+
+- `Cep` (`term()`): the CEP to be validated, an 8-digit binary. Any other
+  term returns `false` — the function never raises.
+
+Returns:
+
+- `boolean()`: `true` if the input is exactly 8 digits, `false` otherwise.
+  Formatting symbols are not stripped — clean the input with
+  `remove_symbols_cep/1` first.
+
+Example:
+
+```erlang
+1> brutils:is_valid_cep(<<"01310200">>).
+true
+2> brutils:is_valid_cep(<<"1310200">>).
+false
+3> brutils:is_valid_cep(<<"01310-200">>).
+false
+```
+
+### format_cep
+
+Formats a valid CEP for display, adding the standard dash (`NNNNN-NNN`).
+
+Args:
+
+- `Cep` (`binary()`): a numbers-only CEP binary.
+
+Returns:
+
+- `{ok, Formatted}` with the formatted CEP, or `{error, invalid}` if the
+  input is not a valid CEP.
+
+Example:
+
+```erlang
+1> brutils:format_cep(<<"01310200">>).
+{ok,<<"01310-200">>}
+2> brutils:format_cep(<<"1234567">>).
+{error,invalid}
+```
+
+### remove_symbols_cep
+
+Removes the formatting symbols `.` and `-` from a CEP string. Only those two
+characters are removed; anything else is kept unchanged.
+
+Args:
+
+- `Cep` (`binary()`): the CEP binary containing symbols to be removed.
+
+Returns:
+
+- `binary()`: a new binary with the specified symbols removed.
+
+Example:
+
+```erlang
+1> brutils:remove_symbols_cep(<<"01310-200">>).
+<<"01310200">>
+```
+
+### generate_cep
+
+Generates a random CEP as a numbers-only binary. Each digit is drawn
+independently, so results may start with zeros.
+
+Returns:
+
+- `binary()`: a random 8-digit CEP.
+
+Example:
+
+```erlang
+1> brutils:generate_cep().
+<<"22648357">>
+2> brutils:generate_cep().
+<<"98885103">>
 ```
 
 ## Author
