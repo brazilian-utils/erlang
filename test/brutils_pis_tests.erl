@@ -57,3 +57,45 @@ is_valid_rejects_non_digit_chars_test() ->
 is_valid_rejects_formatted_input_test() ->
     %% symbols are not stripped before validation
     ?assertNot(brutils_pis:is_valid(<<"120.56798.81-8">>)).
+
+%%--------------------------------------------------------------------
+%% is_valid/1 — check digit
+%%--------------------------------------------------------------------
+
+is_valid_accepts_valid_pis_test() ->
+    %% fixtures produced by the reference implementation; note the
+    %% leading zero in the third one
+    Valid = [<<"12056798818">>,
+             <<"63544726985">>,
+             <<"87317582025">>,
+             <<"03002242154">>,
+             <<"48517716822">>,
+             <<"34723871722">>],
+    lists:foreach(fun(P) -> ?assert(brutils_pis:is_valid(P)) end, Valid).
+
+is_valid_repeated_digits_follow_the_checksum_test() ->
+    %% PIS reserves nothing: all-zeros has weighted sum 0, so its
+    %% check digit is 0 and it is genuinely VALID; the other nine
+    %% repeated sequences fail the checksum. Pinned from the
+    %% reference implementation.
+    ?assert(brutils_pis:is_valid(<<"00000000000">>)),
+    lists:foreach(
+      fun(D) ->
+              Pis = binary:copy(<<D>>, 11),
+              ?assertNot(brutils_pis:is_valid(Pis))
+      end,
+      lists:seq($1, $9)).
+
+is_valid_rejects_bad_check_digit_test() ->
+    %% every wrong value for the last digit of a valid PIS must fail
+    Base = <<"1205679881">>,
+    lists:foreach(
+      fun(D) when D =:= $8 -> ok;
+         (D) -> ?assertNot(brutils_pis:is_valid(<<Base/binary, D>>))
+      end,
+      lists:seq($0, $9)).
+
+is_valid_rejects_borrowed_cpf_docstring_example_test() ->
+    %% the reference docstring reuses a CPF value as its example;
+    %% executing the reference shows it is NOT a valid PIS
+    ?assertNot(brutils_pis:is_valid(<<"82178537464">>)).
