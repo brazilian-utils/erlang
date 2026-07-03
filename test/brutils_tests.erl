@@ -86,3 +86,13 @@ generate_pis_test() ->
     Pis = brutils:generate_pis(),
     ?assertEqual(11, byte_size(Pis)),
     ?assert(brutils:is_valid_pis(Pis)).
+
+%%--------------------------------------------------------------------
+%% CNH
+%%--------------------------------------------------------------------
+
+is_valid_cnh_test() ->
+    ?assert(brutils:is_valid_cnh(<<"98765432100">>)),
+    ?assert(brutils:is_valid_cnh(<<"987654321-00">>)),   % symbols stripped
+    ?assertNot(brutils:is_valid_cnh(<<"12345678901">>)),
+    ?assertNot(brutils:is_valid_cnh(98765432100)).

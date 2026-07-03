@@ -13,6 +13,8 @@
          generate_cnpj/0, generate_cnpj/1, generate_cnpj/2]).
 %% PIS
 -export([is_valid_pis/1, format_pis/1, remove_symbols_pis/1, generate_pis/0]).
+%% CNH
+-export([is_valid_cnh/1]).
 
 %%--------------------------------------------------------------------
 %% CPF
@@ -115,3 +117,14 @@ remove_symbols_pis(Pis) ->
 -spec generate_pis() -> brutils_pis:pis().
 generate_pis() ->
     brutils_pis:generate().
+
+%%--------------------------------------------------------------------
+%% CNH
+%%--------------------------------------------------------------------
+
+%% @doc Returns whether the given term is a valid CNH (2022 layout).
+%% Non-digit characters are stripped before validation.
+%% @see brutils_cnh:is_valid/1
+-spec is_valid_cnh(term()) -> boolean().
+is_valid_cnh(Cnh) ->
+    brutils_cnh:is_valid(Cnh).
