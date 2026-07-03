@@ -8,7 +8,15 @@
 %% significant, so a CPF is never handled as an integer.
 -module(brutils_cpf).
 
--export([remove_symbols/1, is_valid/1]).
+-export([remove_symbols/1, is_valid/1, format/1]).
+
+-type cpf() :: <<_:88>>.
+%% A raw CPF: 11 ASCII digits, e.g. `<<"82178537464">>'.
+
+-type formatted_cpf() :: <<_:112>>.
+%% A display-formatted CPF, e.g. `<<"821.785.374-64">>'.
+
+-export_type([cpf/0, formatted_cpf/0]).
 
 %% @doc Removes the formatting symbols `.' and `-' from a CPF string.
 %%
@@ -50,6 +58,28 @@ is_valid(<<First, _/binary>> = Cpf) when byte_size(Cpf) =:= 11 ->
         andalso checksum_ok(Cpf);
 is_valid(_) ->
     false.
+
+%% @doc Formats a valid CPF for display, adding the standard visual
+%% aid symbols: `<<"XXX.XXX.XXX-XX">>'.
+%%
+%% The input must be a raw, numbers-only CPF accepted by
+%% {@link is_valid/1}; anything else yields `{error, invalid}'.
+%%
+%% ```
+%% 1> brutils_cpf:format(<<"82178537464">>).
+%% {ok,<<"821.785.374-64">>}
+%% 2> brutils_cpf:format(<<"11111111111">>).
+%% {error,invalid}
+%% '''
+-spec format(binary()) -> {ok, formatted_cpf()} | {error, invalid}.
+format(Cpf) when is_binary(Cpf) ->
+    case is_valid(Cpf) of
+        true ->
+            <<A:3/binary, B:3/binary, C:3/binary, Dv:2/binary>> = Cpf,
+            {ok, <<A/binary, $., B/binary, $., C/binary, $-, Dv/binary>>};
+        false ->
+            {error, invalid}
+    end.
 
 %%--------------------------------------------------------------------
 %% Internal

@@ -91,3 +91,27 @@ is_valid_rejects_bad_first_check_digit_test() ->
               ?assertNot(brutils_cpf:is_valid(Cpf))
       end,
       lists:seq($0, $9)).
+
+%%--------------------------------------------------------------------
+%% format/1
+%%--------------------------------------------------------------------
+
+format_valid_cpf_test() ->
+    ?assertEqual({ok, <<"821.785.374-64">>},
+                 brutils_cpf:format(<<"82178537464">>)),
+    ?assertEqual({ok, <<"555.502.077-53">>},
+                 brutils_cpf:format(<<"55550207753">>)).
+
+format_invalid_cpf_test() ->
+    ?assertEqual({error, invalid}, brutils_cpf:format(<<"11111111111">>)),
+    ?assertEqual({error, invalid}, brutils_cpf:format(<<"82178537460">>)),
+    ?assertEqual({error, invalid}, brutils_cpf:format(<<"8217853746">>)),
+    ?assertEqual({error, invalid}, brutils_cpf:format(<<>>)).
+
+format_already_formatted_is_invalid_test() ->
+    %% format/1 does not strip symbols before validating
+    ?assertEqual({error, invalid}, brutils_cpf:format(<<"821.785.374-64">>)).
+
+format_non_binary_is_out_of_contract_test() ->
+    ?assertError(function_clause, brutils_cpf:format(82178537464)),
+    ?assertError(function_clause, brutils_cpf:format("82178537464")).
