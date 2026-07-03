@@ -9,7 +9,15 @@
 %% significant, so a CEP is never handled as an integer.
 -module(brutils_cep).
 
--export([remove_symbols/1, is_valid/1]).
+-export([remove_symbols/1, is_valid/1, format/1]).
+
+-type cep() :: <<_:64>>.
+%% A raw CEP: 8 ASCII digits, e.g. `<<"01310200">>'.
+
+-type formatted_cep() :: <<_:72>>.
+%% A display-formatted CEP, e.g. `<<"01310-200">>'.
+
+-export_type([cep/0, formatted_cep/0]).
 
 %% @doc Removes the formatting symbols `.' and `-' from a CEP string.
 %%
@@ -49,6 +57,28 @@ is_valid(Cep) when is_binary(Cep), byte_size(Cep) =:= 8 ->
     all_digits(Cep);
 is_valid(_) ->
     false.
+
+%% @doc Formats a valid CEP for display, adding the standard dash:
+%% `<<"NNNNN-NNN">>'.
+%%
+%% The input must be a raw, numbers-only CEP accepted by
+%% {@link is_valid/1}; anything else yields `{error, invalid}'.
+%%
+%% ```
+%% 1> brutils_cep:format(<<"01310200">>).
+%% {ok,<<"01310-200">>}
+%% 2> brutils_cep:format(<<"1234567">>).
+%% {error,invalid}
+%% '''
+-spec format(binary()) -> {ok, formatted_cep()} | {error, invalid}.
+format(Cep) when is_binary(Cep) ->
+    case is_valid(Cep) of
+        true ->
+            <<A:5/binary, B:3/binary>> = Cep,
+            {ok, <<A/binary, $-, B/binary>>};
+        false ->
+            {error, invalid}
+    end.
 
 %%--------------------------------------------------------------------
 %% Internal

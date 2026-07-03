@@ -73,3 +73,27 @@ is_valid_rejects_non_digit_chars_test() ->
 is_valid_rejects_formatted_input_test() ->
     %% symbols are not stripped before validation
     ?assertNot(brutils_cep:is_valid(<<"01310-200">>)).
+
+%%--------------------------------------------------------------------
+%% format/1
+%%--------------------------------------------------------------------
+
+format_valid_cep_test() ->
+    %% grouping is 5-3 with a dash; leading zeros survive
+    ?assertEqual({ok, <<"01310-200">>},
+                 brutils_cep:format(<<"01310200">>)),
+    ?assertEqual({ok, <<"12345-678">>},
+                 brutils_cep:format(<<"12345678">>)).
+
+format_invalid_cep_test() ->
+    ?assertEqual({error, invalid}, brutils_cep:format(<<"1234567">>)),
+    ?assertEqual({error, invalid}, brutils_cep:format(<<"0131020a">>)),
+    ?assertEqual({error, invalid}, brutils_cep:format(<<>>)).
+
+format_already_formatted_is_invalid_test() ->
+    %% format/1 does not strip symbols before validating
+    ?assertEqual({error, invalid}, brutils_cep:format(<<"01310-200">>)).
+
+format_non_binary_is_out_of_contract_test() ->
+    ?assertError(function_clause, brutils_cep:format(1310200)),
+    ?assertError(function_clause, brutils_cep:format("01310200")).
