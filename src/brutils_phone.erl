@@ -8,7 +8,7 @@
 %% All functions operate on UTF-8 binaries.
 -module(brutils_phone).
 
--export([remove_symbols/1, is_valid/1, is_valid/2]).
+-export([remove_symbols/1, is_valid/1, is_valid/2, format/1]).
 
 -type phone_type() :: mobile | landline.
 -export_type([phone_type/0]).
@@ -80,6 +80,32 @@ is_valid(<<D1, D2, D3, Rest/binary>>, landline)
     all_digits(Rest);
 is_valid(_, landline) ->
     false.
+
+%% @doc Formats a valid phone number for display: the DDD in
+%% parentheses (no space after them), then the subscriber number with
+%% a dash before the last four digits.
+%%
+%% Mobile numbers come out as `(DD)NNNNN-NNNN' and landlines as
+%% `(DD)NNNN-NNNN'. The input must be a raw, digits-only number
+%% accepted by {@link is_valid/1}; anything else yields
+%% `{error, invalid}'.
+%%
+%% ```
+%% 1> brutils_phone:format(<<"11994029275">>).
+%% {ok,<<"(11)99402-9275">>}
+%% 2> brutils_phone:format(<<"1635014415">>).
+%% {ok,<<"(16)3501-4415">>}
+%% '''
+-spec format(binary()) -> {ok, binary()} | {error, invalid}.
+format(Phone) when is_binary(Phone) ->
+    case is_valid(Phone) of
+        true ->
+            Split = byte_size(Phone) - 4,
+            <<Ddd:2/binary, Head:(Split - 2)/binary, Tail:4/binary>> = Phone,
+            {ok, <<$(, Ddd/binary, $), Head/binary, $-, Tail/binary>>};
+        false ->
+            {error, invalid}
+    end.
 
 %%--------------------------------------------------------------------
 %% Internal

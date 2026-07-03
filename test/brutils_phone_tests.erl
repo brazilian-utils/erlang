@@ -96,3 +96,30 @@ is_valid_unknown_type_is_out_of_contract_test() ->
                  brutils_phone:is_valid(<<"11994029275">>, cellphone)),
     ?assertError(function_clause,
                  brutils_phone:is_valid(<<"11994029275">>, "mobile")).
+
+%%--------------------------------------------------------------------
+%% format/1
+%%--------------------------------------------------------------------
+
+format_mobile_test() ->
+    %% (DD) prefix with NO space after the parenthesis; 5-4 split
+    ?assertEqual({ok, <<"(11)99402-9275">>},
+                 brutils_phone:format(<<"11994029275">>)).
+
+format_landline_test() ->
+    %% 4-4 split — the dash sits before the last four digits
+    ?assertEqual({ok, <<"(16)3501-4415">>},
+                 brutils_phone:format(<<"1635014415">>)).
+
+format_invalid_phone_test() ->
+    ?assertEqual({error, invalid}, brutils_phone:format(<<"333333">>)),
+    ?assertEqual({error, invalid}, brutils_phone:format(<<"01994029275">>)),
+    ?assertEqual({error, invalid}, brutils_phone:format(<<>>)).
+
+format_already_formatted_is_invalid_test() ->
+    ?assertEqual({error, invalid},
+                 brutils_phone:format(<<"(11)99402-9275">>)).
+
+format_non_binary_is_out_of_contract_test() ->
+    ?assertError(function_clause, brutils_phone:format(11994029275)),
+    ?assertError(function_clause, brutils_phone:format("11994029275")).
