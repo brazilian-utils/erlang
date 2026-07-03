@@ -123,3 +123,55 @@ format_already_formatted_is_invalid_test() ->
 format_non_binary_is_out_of_contract_test() ->
     ?assertError(function_clause, brutils_phone:format(11994029275)),
     ?assertError(function_clause, brutils_phone:format("11994029275")).
+
+%%--------------------------------------------------------------------
+%% remove_international_dialing_code/1
+%%
+%% The reference implementation is quirky and the quirks are ported
+%% faithfully — every expected value below was executed against it.
+%%--------------------------------------------------------------------
+
+dialing_code_removes_leading_55_test() ->
+    ?assertEqual(<<"11994029275">>,
+                 brutils_phone:remove_international_dialing_code(
+                   <<"5511994029275">>)).
+
+dialing_code_keeps_plus_test() ->
+    %% quirk: the '+' is not removed — only the first "55" is
+    ?assertEqual(<<"+11994029275">>,
+                 brutils_phone:remove_international_dialing_code(
+                   <<"+5511994029275">>)).
+
+dialing_code_leaves_short_numbers_alone_test() ->
+    %% 11 digits or fewer (spaces excluded) are never touched, even
+    %% when they contain "55"
+    ?assertEqual(<<"1635014415">>,
+                 brutils_phone:remove_international_dialing_code(
+                   <<"1635014415">>)),
+    ?assertEqual(<<"11994029275">>,
+                 brutils_phone:remove_international_dialing_code(
+                   <<"11994029275">>)),
+    ?assertEqual(<<"5535317900">>,
+                 brutils_phone:remove_international_dialing_code(
+                   <<"5535317900">>)).
+
+dialing_code_eats_mid_number_55_test() ->
+    %% quirk: the FIRST "55" is removed wherever it sits — here it is
+    %% not a dialing code at all
+    ?assertEqual(<<"9999555555">>,
+                 brutils_phone:remove_international_dialing_code(
+                   <<"999955555555">>)).
+
+dialing_code_keeps_spaces_test() ->
+    %% quirk: the length check ignores spaces, but the removal happens
+    %% on the original string — the space after "55" survives
+    ?assertEqual(<<" 11 99402 9275">>,
+                 brutils_phone:remove_international_dialing_code(
+                   <<"55 11 99402 9275">>)),
+    ?assertEqual(<<"+ 11 99402 9275">>,
+                 brutils_phone:remove_international_dialing_code(
+                   <<"+55 11 99402 9275">>)).
+
+dialing_code_non_binary_is_out_of_contract_test() ->
+    ?assertError(function_clause,
+                 brutils_phone:remove_international_dialing_code(5511994029275)).

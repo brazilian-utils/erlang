@@ -8,7 +8,8 @@
 %% All functions operate on UTF-8 binaries.
 -module(brutils_phone).
 
--export([remove_symbols/1, is_valid/1, is_valid/2, format/1]).
+-export([remove_symbols/1, is_valid/1, is_valid/2, format/1,
+         remove_international_dialing_code/1]).
 
 -type phone_type() :: mobile | landline.
 -export_type([phone_type/0]).
@@ -105,6 +106,41 @@ format(Phone) when is_binary(Phone) ->
             {ok, <<$(, Ddd/binary, $), Head/binary, $-, Tail/binary>>};
         false ->
             {error, invalid}
+    end.
+
+%% @doc Removes the Brazilian international dialing code (`55') from
+%% a phone number, faithfully porting the reference implementation's
+%% sharp edges.
+%%
+%% If the input contains the substring `55' anywhere and is longer
+%% than 11 characters once spaces are ignored, the FIRST occurrence
+%% of `55' is removed from the original string; otherwise the input
+%% is returned unchanged. Consequences to be aware of:
+%%
+%% <ul>
+%% <li>a leading `+' is kept: `<<"+5511994029275">>' becomes
+%%     `<<"+11994029275">>';</li>
+%% <li>the removed `55' need not actually be a dialing code — the
+%%     first occurrence goes, wherever it sits;</li>
+%% <li>spaces are ignored by the length check but preserved in the
+%%     output.</li>
+%% </ul>
+%%
+%% ```
+%% 1> brutils_phone:remove_international_dialing_code(<<"5511994029275">>).
+%% <<"11994029275">>
+%% 2> brutils_phone:remove_international_dialing_code(<<"1635014415">>).
+%% <<"1635014415">>
+%% '''
+-spec remove_international_dialing_code(binary()) -> binary().
+remove_international_dialing_code(Phone) when is_binary(Phone) ->
+    NoSpaces = << <<C>> || <<C>> <= Phone, C =/= $\s >>,
+    case binary:match(Phone, <<"55">>) of
+        {Pos, 2} when byte_size(NoSpaces) > 11 ->
+            <<Before:Pos/binary, "55", After/binary>> = Phone,
+            <<Before/binary, After/binary>>;
+        _ ->
+            Phone
     end.
 
 %%--------------------------------------------------------------------
