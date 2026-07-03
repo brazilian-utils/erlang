@@ -51,6 +51,8 @@ domain module directly.
   - [format_pis](#format_pis)
   - [remove_symbols_pis](#remove_symbols_pis)
   - [generate_pis](#generate_pis)
+- [CNH](#cnh)
+  - [is_valid_cnh](#is_valid_cnh)
 
 ## CPF
 
@@ -330,6 +332,43 @@ Example:
 <<"99360519414">>
 2> brutils:generate_pis().
 <<"95319303914">>
+```
+
+## CNH
+
+### is_valid_cnh
+
+Returns whether the given CNH (Brazilian driver's license registration
+number, 2022 layout) is valid: after stripping every non-digit character,
+exactly 11 digits must remain and both verifying check digits must match the
+base number. Earlier CNH layouts are not supported. This function does not
+verify the existence of the CNH; it only validates the format of the string.
+
+Unlike the CPF/CNPJ/PIS validators, symbols do not need to be removed first:
+formatted input such as `<<"987654321-00">>` is accepted, and letters are
+stripped rather than rejected.
+
+Args:
+
+- `Cnh` (`term()`): the CNH to be validated. Any non-binary term returns
+  `false` — the function never raises.
+
+Returns:
+
+- `boolean()`: `true` if 11 digits remain after stripping and the check
+  digits match, `false` otherwise.
+
+Example:
+
+```erlang
+1> brutils:is_valid_cnh(<<"98765432100">>).
+true
+2> brutils:is_valid_cnh(<<"987654321-00">>).
+true
+3> brutils:is_valid_cnh(<<"12345678901">>).
+false
+4> brutils:is_valid_cnh(<<"A2C45678901">>).
+false
 ```
 
 ## Author
