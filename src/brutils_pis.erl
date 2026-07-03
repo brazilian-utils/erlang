@@ -56,11 +56,7 @@ remove_symbols(Pis) when is_binary(Pis) ->
 %% '''
 -spec is_valid(term()) -> boolean().
 is_valid(Pis) when is_binary(Pis), byte_size(Pis) =:= 11 ->
-    all_digits(Pis)
-        andalso begin
-                    <<Base10:10/binary, Dv>> = Pis,
-                    Dv =:= checksum(Base10)
-                end;
+    all_digits(Pis) andalso checksum_ok(Pis);
 is_valid(_) ->
     false.
 
@@ -111,6 +107,12 @@ generate() ->
 all_digits(<<C, Rest/binary>>) when C >= $0, C =< $9 -> all_digits(Rest);
 all_digits(<<>>) -> true;
 all_digits(_) -> false.
+
+%% The check digit (byte 11) matches the one computed from the
+%% 10-digit base.
+-spec checksum_ok(pis()) -> boolean().
+checksum_ok(<<Base10:10/binary, Dv>>) ->
+    Dv =:= checksum(Base10).
 
 %% Weights applied to the 10 base digits, left to right.
 -define(WEIGHTS, [3, 2, 9, 8, 7, 6, 5, 4, 3, 2]).
