@@ -106,3 +106,26 @@ is_valid_renavam_test() ->
     ?assertNot(brutils:is_valid_renavam(<<"867695973-08">>)),  % NOT stripped
     ?assertNot(brutils:is_valid_renavam(<<"12345678901">>)),
     ?assertNot(brutils:is_valid_renavam(86769597308)).
+
+%%--------------------------------------------------------------------
+%% CEP
+%%--------------------------------------------------------------------
+
+is_valid_cep_test() ->
+    ?assert(brutils:is_valid_cep(<<"01310200">>)),
+    ?assertNot(brutils:is_valid_cep(<<"01310-200">>)),
+    ?assertNot(brutils:is_valid_cep(1310200)).
+
+format_cep_test() ->
+    ?assertEqual({ok, <<"01310-200">>},
+                 brutils:format_cep(<<"01310200">>)),
+    ?assertEqual({error, invalid}, brutils:format_cep(<<"123">>)).
+
+remove_symbols_cep_test() ->
+    ?assertEqual(<<"01310200">>,
+                 brutils:remove_symbols_cep(<<"01310-200">>)).
+
+generate_cep_test() ->
+    Cep = brutils:generate_cep(),
+    ?assertEqual(8, byte_size(Cep)),
+    ?assert(brutils:is_valid_cep(Cep)).

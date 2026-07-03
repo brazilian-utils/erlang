@@ -17,6 +17,8 @@
 -export([is_valid_cnh/1]).
 %% RENAVAM
 -export([is_valid_renavam/1]).
+%% CEP
+-export([is_valid_cep/1, format_cep/1, remove_symbols_cep/1, generate_cep/0]).
 
 %%--------------------------------------------------------------------
 %% CPF
@@ -141,3 +143,33 @@ is_valid_cnh(Cnh) ->
 -spec is_valid_renavam(term()) -> boolean().
 is_valid_renavam(Renavam) ->
     brutils_renavam:is_valid(Renavam).
+
+%%--------------------------------------------------------------------
+%% CEP
+%%--------------------------------------------------------------------
+
+%% @doc Returns whether the given term is a valid CEP (8 digits; no
+%% check digit exists, so validity says nothing about existence).
+%% @see brutils_cep:is_valid/1
+-spec is_valid_cep(term()) -> boolean().
+is_valid_cep(Cep) ->
+    brutils_cep:is_valid(Cep).
+
+%% @doc Formats a valid CEP for display (`<<"NNNNN-NNN">>').
+%% @see brutils_cep:format/1
+-spec format_cep(binary()) ->
+        {ok, brutils_cep:formatted_cep()} | {error, invalid}.
+format_cep(Cep) ->
+    brutils_cep:format(Cep).
+
+%% @doc Removes the formatting symbols `.' and `-' from a CEP string.
+%% @see brutils_cep:remove_symbols/1
+-spec remove_symbols_cep(binary()) -> binary().
+remove_symbols_cep(Cep) ->
+    brutils_cep:remove_symbols(Cep).
+
+%% @doc Generates a random CEP.
+%% @see brutils_cep:generate/0
+-spec generate_cep() -> brutils_cep:cep().
+generate_cep() ->
+    brutils_cep:generate().
