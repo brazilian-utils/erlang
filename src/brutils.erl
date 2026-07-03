@@ -11,6 +11,8 @@
 %% CNPJ
 -export([is_valid_cnpj/1, format_cnpj/1, remove_symbols_cnpj/1,
          generate_cnpj/0, generate_cnpj/1, generate_cnpj/2]).
+%% PIS
+-export([is_valid_pis/1, format_pis/1, remove_symbols_pis/1, generate_pis/0]).
 
 %%--------------------------------------------------------------------
 %% CPF
@@ -84,3 +86,32 @@ generate_cnpj(Branch) ->
                     Alphanumeric :: boolean()) -> brutils_cnpj:cnpj().
 generate_cnpj(Branch, Alphanumeric) ->
     brutils_cnpj:generate(Branch, Alphanumeric).
+
+%%--------------------------------------------------------------------
+%% PIS
+%%--------------------------------------------------------------------
+
+%% @doc Returns whether the given term is a valid PIS.
+%% @see brutils_pis:is_valid/1
+-spec is_valid_pis(term()) -> boolean().
+is_valid_pis(Pis) ->
+    brutils_pis:is_valid(Pis).
+
+%% @doc Formats a valid PIS for display (`<<"NNN.NNNNN.NN-N">>').
+%% @see brutils_pis:format/1
+-spec format_pis(binary()) ->
+        {ok, brutils_pis:formatted_pis()} | {error, invalid}.
+format_pis(Pis) ->
+    brutils_pis:format(Pis).
+
+%% @doc Removes the formatting symbols `.' and `-' from a PIS string.
+%% @see brutils_pis:remove_symbols/1
+-spec remove_symbols_pis(binary()) -> binary().
+remove_symbols_pis(Pis) ->
+    brutils_pis:remove_symbols(Pis).
+
+%% @doc Generates a random valid PIS.
+%% @see brutils_pis:generate/0
+-spec generate_pis() -> brutils_pis:pis().
+generate_pis() ->
+    brutils_pis:generate().

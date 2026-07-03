@@ -63,3 +63,26 @@ generate_cnpj_alphanumeric_test() ->
     Cnpj = brutils:generate_cnpj(<<"AB12">>, true),
     ?assertEqual(<<"AB12">>, binary:part(Cnpj, 8, 4)),
     ?assert(brutils:is_valid_cnpj(Cnpj)).
+
+%%--------------------------------------------------------------------
+%% PIS
+%%--------------------------------------------------------------------
+
+is_valid_pis_test() ->
+    ?assert(brutils:is_valid_pis(<<"12056798818">>)),
+    ?assertNot(brutils:is_valid_pis(<<"12056798810">>)),
+    ?assertNot(brutils:is_valid_pis(12056798818)).
+
+format_pis_test() ->
+    ?assertEqual({ok, <<"120.56798.81-8">>},
+                 brutils:format_pis(<<"12056798818">>)),
+    ?assertEqual({error, invalid}, brutils:format_pis(<<"123">>)).
+
+remove_symbols_pis_test() ->
+    ?assertEqual(<<"12056798818">>,
+                 brutils:remove_symbols_pis(<<"120.56798.81-8">>)).
+
+generate_pis_test() ->
+    Pis = brutils:generate_pis(),
+    ?assertEqual(11, byte_size(Pis)),
+    ?assert(brutils:is_valid_pis(Pis)).
