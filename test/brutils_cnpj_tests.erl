@@ -191,3 +191,44 @@ format_already_formatted_is_invalid_test() ->
 format_non_binary_is_out_of_contract_test() ->
     ?assertError(function_clause, brutils_cnpj:format(3560714000142)),
     ?assertError(function_clause, brutils_cnpj:format("03560714000142")).
+
+%%--------------------------------------------------------------------
+%% generate/0,1 — numeric mode
+%%--------------------------------------------------------------------
+
+branch_of(Cnpj) ->
+    <<_:8/binary, Branch:4/binary, _:2/binary>> = Cnpj,
+    Branch.
+
+generate_produces_valid_cnpjs_test() ->
+    %% smoke check; the exhaustive statement lives in the property suite
+    lists:foreach(
+      fun(_) ->
+              Cnpj = brutils_cnpj:generate(),
+              ?assertEqual(14, byte_size(Cnpj)),
+              ?assert(brutils_cnpj:is_valid(Cnpj)),
+              ?assertEqual(<<"0001">>, branch_of(Cnpj))
+      end,
+      lists:seq(1, 100)).
+
+generate_normalizes_integer_branch_test() ->
+    ?assertEqual(<<"0001">>, branch_of(brutils_cnpj:generate(1))),
+    ?assertEqual(<<"0001">>, branch_of(brutils_cnpj:generate(0))),
+    ?assertEqual(<<"0001">>, branch_of(brutils_cnpj:generate(10000))),  % rem, then zero-bump
+    ?assertEqual(<<"2345">>, branch_of(brutils_cnpj:generate(12345))),  % rem 10000
+    ?assertEqual(<<"0042">>, branch_of(brutils_cnpj:generate(42))).
+
+generate_accepts_digit_binary_branch_test() ->
+    ?assertEqual(<<"0012">>, branch_of(brutils_cnpj:generate(<<"12">>))),
+    ?assertEqual(<<"1234">>, branch_of(brutils_cnpj:generate(<<"1234">>))),
+    ?assert(brutils_cnpj:is_valid(brutils_cnpj:generate(<<"12">>))).
+
+generate_rejects_out_of_contract_branch_test() ->
+    ?assertError(function_clause, brutils_cnpj:generate(-1)),
+    ?assertError(badarg, brutils_cnpj:generate(<<"AB12">>)),
+    ?assertError(badarg, brutils_cnpj:generate(<<"-5">>)),
+    ?assertError(badarg, brutils_cnpj:generate(<<>>)).
+
+generate_is_random_test() ->
+    Cnpjs = [brutils_cnpj:generate() || _ <- lists:seq(1, 100)],
+    ?assert(length(lists:usort(Cnpjs)) > 1).

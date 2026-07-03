@@ -12,7 +12,7 @@
 %% significant, so a CNPJ is never handled as an integer.
 -module(brutils_cnpj).
 
--export([remove_symbols/1, is_valid/1, format/1]).
+-export([remove_symbols/1, is_valid/1, format/1, generate/0, generate/1]).
 
 -type cnpj() :: <<_:112>>.
 %% A raw CNPJ: 14 characters, digits or uppercase letters with numeric
@@ -94,9 +94,61 @@ format(Cnpj) when is_binary(Cnpj) ->
             {error, invalid}
     end.
 
+%% @doc Generates a random valid CNPJ with branch number `0001'.
+%%
+%% Equivalent to `generate(1)'.
+%%
+%% ```
+%% 1> brutils_cnpj:generate().
+%% <<"05864803000108">>
+%% '''
+-spec generate() -> cnpj().
+generate() ->
+    generate(1).
+
+%% @doc Generates a random valid CNPJ with the given branch number.
+%%
+%% The branch may be a non-negative integer or a digits-only binary.
+%% It is normalized to 4 digits: reduced modulo 10000, bumped to 1
+%% when the reduction yields 0, and zero-padded. A negative integer or
+%% a binary containing anything but ASCII digits is out of contract
+%% and raises.
+%%
+%% ```
+%% 1> brutils_cnpj:generate(42).
+%% <<"38082273004273">>
+%% 2> brutils_cnpj:generate(<<"12">>).
+%% <<"12695023001208">>
+%% '''
+-spec generate(Branch :: non_neg_integer() | binary()) -> cnpj().
+generate(Branch) ->
+    Branch4 = normalize_branch(Branch),
+    N = rand:uniform(100000000) - 1,
+    Root = list_to_binary(io_lib:format("~8..0b", [N])),
+    Base12 = <<Root/binary, Branch4/binary>>,
+    <<Base12/binary, (checksum(Base12))/binary>>.
+
 %%--------------------------------------------------------------------
 %% Internal
 %%--------------------------------------------------------------------
+
+%% Normalize a branch number to its 4-digit form: modulo 10000,
+%% zero bumped to 1, zero-padded.
+-spec normalize_branch(non_neg_integer() | binary()) -> <<_:32>>.
+normalize_branch(Branch) when is_integer(Branch), Branch >= 0 ->
+    B0 = Branch rem 10000,
+    B = case B0 of
+            0 -> 1;
+            _ -> B0
+        end,
+    list_to_binary(io_lib:format("~4..0b", [B]));
+normalize_branch(Branch) when is_binary(Branch), Branch =/= <<>> ->
+    case all_digits(Branch) of
+        true -> normalize_branch(binary_to_integer(Branch));
+        false -> error(badarg)
+    end;
+normalize_branch(Branch) when is_binary(Branch) ->
+    error(badarg).
 
 %% Every byte is a digit or an uppercase letter?
 -spec alphanumeric(binary()) -> boolean().
