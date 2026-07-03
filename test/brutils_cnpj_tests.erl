@@ -112,3 +112,51 @@ is_valid_rejects_bad_first_check_digit_test() ->
               ?assertNot(brutils_cnpj:is_valid(Cnpj))
       end,
       lists:seq($0, $9)).
+
+%%--------------------------------------------------------------------
+%% is_valid/1 — check digits (alphanumeric CNPJs)
+%%--------------------------------------------------------------------
+
+%% Fixtures produced by the reference implementation; character values
+%% are ASCII-based (`C - $0'), so letters weigh 17..42 in the checksum.
+alphanumeric_fixtures() ->
+    [<<"6Q4E392H000190">>,
+     <<"534M1541000164">>,
+     <<"K379QJ73000104">>,
+     <<"08W10Q81000153">>,
+     <<"715K130N000173">>,
+     <<"8577HE6NAB1249">>].   % alphanumeric branch (AB12)
+
+is_valid_accepts_alphanumeric_cnpjs_test() ->
+    lists:foreach(fun(C) -> ?assert(brutils_cnpj:is_valid(C)) end,
+                  alphanumeric_fixtures()).
+
+is_valid_rejects_lowercased_alphanumeric_test() ->
+    lists:foreach(
+      fun(C) ->
+              ?assertNot(brutils_cnpj:is_valid(string:lowercase(C)))
+      end,
+      alphanumeric_fixtures()).
+
+is_valid_rejects_bad_alphanumeric_second_check_digit_test() ->
+    Base = <<"6Q4E392H00019">>,
+    lists:foreach(
+      fun(D) when D =:= $0 -> ok;
+         (D) -> ?assertNot(brutils_cnpj:is_valid(<<Base/binary, D>>))
+      end,
+      lists:seq($0, $9)).
+
+is_valid_rejects_bad_alphanumeric_first_check_digit_test() ->
+    %% corrupt the 13th char ($9 in 6Q4E392H000190), keep the rest
+    lists:foreach(
+      fun(D) when D =:= $9 -> ok;
+         (D) ->
+              Cnpj = <<"6Q4E392H0001", D, "0">>,
+              ?assertNot(brutils_cnpj:is_valid(Cnpj))
+      end,
+      lists:seq($0, $9)).
+
+is_valid_rejects_corrupted_alphanumeric_base_test() ->
+    %% swapping one base letter for another changes the checksum
+    ?assertNot(brutils_cnpj:is_valid(<<"6Q4E392I000190">>)),   % H -> I
+    ?assertNot(brutils_cnpj:is_valid(<<"7Q4E392H000190">>)).   % 6 -> 7
