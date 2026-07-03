@@ -7,7 +7,7 @@
 %% All functions operate on UTF-8 binaries.
 -module(brutils_passport).
 
--export([remove_symbols/1, is_valid/1, format/1]).
+-export([remove_symbols/1, is_valid/1, format/1, generate/0]).
 
 -type passport() :: <<_:64>>.
 %% A passport number: 2 uppercase ASCII letters + 6 ASCII digits.
@@ -81,9 +81,28 @@ format(Passport) when is_binary(Passport) ->
         false -> {error, invalid}
     end.
 
+%% @doc Generates a random valid passport number: 2 uniform uppercase
+%% letters followed by 6 uniform digits.
+%%
+%% With no check digit to compute, every output is valid by
+%% construction.
+%%
+%% ```
+%% 1> brutils_passport:generate().
+%% <<"HA029151">>
+%% '''
+-spec generate() -> passport().
+generate() ->
+    <<($A + rand:uniform(26) - 1), ($A + rand:uniform(26) - 1),
+      (digits(6))/binary>>.
+
 %%--------------------------------------------------------------------
 %% Internal
 %%--------------------------------------------------------------------
+
+-spec digits(pos_integer()) -> binary().
+digits(N) ->
+    << <<($0 + rand:uniform(10) - 1)>> || _ <- lists:seq(1, N) >>.
 
 %% Uppercase ASCII letters only; every other byte is left unchanged
 %% (multibyte input therefore simply fails the later validation).

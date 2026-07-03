@@ -117,3 +117,20 @@ format_multibyte_input_is_invalid_test() ->
 format_non_binary_is_out_of_contract_test() ->
     ?assertError(function_clause, brutils_passport:format(12345678)),
     ?assertError(function_clause, brutils_passport:format("ab-123456")).
+
+%%--------------------------------------------------------------------
+%% generate/0
+%%--------------------------------------------------------------------
+
+generate_produces_valid_passports_test() ->
+    lists:foreach(
+      fun(_) ->
+              Passport = brutils_passport:generate(),
+              ?assertEqual(8, byte_size(Passport)),
+              ?assert(brutils_passport:is_valid(Passport))
+      end,
+      lists:seq(1, 100)).
+
+generate_is_random_test() ->
+    Passports = [brutils_passport:generate() || _ <- lists:seq(1, 100)],
+    ?assert(length(lists:usort(Passports)) > 1).
