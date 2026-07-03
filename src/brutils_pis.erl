@@ -9,7 +9,7 @@
 %% significant, so a PIS is never handled as an integer.
 -module(brutils_pis).
 
--export([remove_symbols/1, is_valid/1, format/1]).
+-export([remove_symbols/1, is_valid/1, format/1, generate/0]).
 
 -type pis() :: <<_:88>>.
 %% A raw PIS: 11 ASCII digits, e.g. `<<"12056798818">>'.
@@ -85,6 +85,23 @@ format(Pis) when is_binary(Pis) ->
         false ->
             {error, invalid}
     end.
+
+%% @doc Generates a random valid PIS as a raw, numbers-only binary.
+%%
+%% The 10-digit base is drawn uniformly — zero included, so the
+%% result may start with (or be all) zeros — and the check digit is
+%% computed from it, so the result always satisfies
+%% {@link is_valid/1}.
+%%
+%% ```
+%% 1> brutils_pis:generate().
+%% <<"32519670521">>
+%% '''
+-spec generate() -> pis().
+generate() ->
+    N = rand:uniform(10000000000) - 1,
+    Base = list_to_binary(io_lib:format("~10..0b", [N])),
+    <<Base/binary, (checksum(Base))>>.
 
 %%--------------------------------------------------------------------
 %% Internal

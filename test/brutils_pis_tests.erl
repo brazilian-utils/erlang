@@ -125,3 +125,21 @@ format_already_formatted_is_invalid_test() ->
 format_non_binary_is_out_of_contract_test() ->
     ?assertError(function_clause, brutils_pis:format(12056798818)),
     ?assertError(function_clause, brutils_pis:format("12056798818")).
+
+%%--------------------------------------------------------------------
+%% generate/0
+%%--------------------------------------------------------------------
+
+generate_produces_valid_pis_test() ->
+    %% smoke check; the exhaustive statement lives in the property suite
+    lists:foreach(
+      fun(_) ->
+              Pis = brutils_pis:generate(),
+              ?assertEqual(11, byte_size(Pis)),
+              ?assert(brutils_pis:is_valid(Pis))
+      end,
+      lists:seq(1, 100)).
+
+generate_is_random_test() ->
+    Pises = [brutils_pis:generate() || _ <- lists:seq(1, 100)],
+    ?assert(length(lists:usort(Pises)) > 1).
