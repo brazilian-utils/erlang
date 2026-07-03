@@ -66,6 +66,11 @@ domain module directly.
   - [remove_symbols_phone](#remove_symbols_phone)
   - [remove_international_dialing_code](#remove_international_dialing_code)
   - [generate_phone](#generate_phone)
+- [Passport](#passport)
+  - [is_valid_passport](#is_valid_passport)
+  - [format_passport](#format_passport)
+  - [remove_symbols_passport](#remove_symbols_passport)
+  - [generate_passport](#generate_passport)
 
 ## CPF
 
@@ -643,6 +648,104 @@ Example:
 <<"59956385883">>
 3> brutils:generate_phone(landline).
 <<"7529936607">>
+```
+
+## Passport
+
+A Brazilian passport number has 2 uppercase letters followed by 6 digits.
+There is no check digit, so validity says nothing about existence. Note the
+division of labor: `is_valid_passport` is strict (case-sensitive, no
+symbol stripping), while `format_passport` is lenient — it uppercases and
+strips symbols before validating, so the same input can fail one and pass
+the other.
+
+### is_valid_passport
+
+Returns whether the given passport number is valid: exactly 2 uppercase
+letters followed by exactly 6 digits. Lowercase letters and symbols make
+the input invalid — use `format_passport/1` to normalize first.
+
+Args:
+
+- `Passport` (`term()`): the passport number to be validated. Any
+  non-binary term returns `false` — the function never raises.
+
+Returns:
+
+- `boolean()`: `true` if the input matches the shape, `false` otherwise.
+
+Example:
+
+```erlang
+1> brutils:is_valid_passport(<<"AB123456">>).
+true
+2> brutils:is_valid_passport(<<"Ab123456">>).
+false
+3> brutils:is_valid_passport(<<"AB-123456">>).
+false
+```
+
+### format_passport
+
+Normalizes and formats a passport number: uppercases ASCII letters, strips
+the symbols `-`, `.` and spaces, then validates the result.
+
+Args:
+
+- `Passport` (`binary()`): a passport number, possibly lowercase or with
+  symbols.
+
+Returns:
+
+- `{ok, Formatted}` with the normalized uppercase passport, or
+  `{error, invalid}` if the input does not normalize into a valid one.
+
+Example:
+
+```erlang
+1> brutils:format_passport(<<"ab-123456">>).
+{ok,<<"AB123456">>}
+2> brutils:format_passport(<<"111111">>).
+{error,invalid}
+```
+
+### remove_symbols_passport
+
+Removes the symbols `-`, `.` and spaces from a passport string. Only those
+three characters are removed, and letter case is preserved.
+
+Args:
+
+- `Passport` (`binary()`): the passport string containing symbols to be
+  removed.
+
+Returns:
+
+- `binary()`: a new binary with the specified symbols removed.
+
+Example:
+
+```erlang
+1> brutils:remove_symbols_passport(<<"Ab -. 123456">>).
+<<"Ab123456">>
+```
+
+### generate_passport
+
+Generates a random valid passport number: 2 uniform uppercase letters
+followed by 6 uniform digits.
+
+Returns:
+
+- `binary()`: a random valid passport number.
+
+Example:
+
+```erlang
+1> brutils:generate_passport().
+<<"AP051847">>
+2> brutils:generate_passport().
+<<"ZN446187">>
 ```
 
 ## Author
