@@ -1,4 +1,4 @@
-%% Tests for brutils_cpf — see spec/01-cpf.md
+%% @doc Tests for {@link brutils_cpf}.
 -module(brutils_cpf_tests).
 
 -include_lib("eunit/include/eunit.hrl").
