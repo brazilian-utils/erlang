@@ -12,7 +12,8 @@
 %% significant, so a CNPJ is never handled as an integer.
 -module(brutils_cnpj).
 
--export([remove_symbols/1, is_valid/1, format/1, generate/0, generate/1]).
+-export([remove_symbols/1, is_valid/1, format/1,
+         generate/0, generate/1, generate/2]).
 
 -type cnpj() :: <<_:112>>.
 %% A raw CNPJ: 14 characters, digits or uppercase letters with numeric
@@ -128,6 +129,33 @@ generate(Branch) ->
     Base12 = <<Root/binary, Branch4/binary>>,
     <<Base12/binary, (checksum(Base12))/binary>>.
 
+%% @doc Generates a random valid CNPJ, optionally alphanumeric.
+%%
+%% With `Alphanumeric = false' this is exactly {@link generate/1}.
+%% With `Alphanumeric = true' the 8-character root is drawn from
+%% digits and uppercase letters (digits three times as likely), and
+%% the branch is normalized as text: truncated to its first 4
+%% characters when longer, left-padded with `0' when shorter, and
+%% replaced by `0001' when it is `0000' or contains anything but
+%% digits and uppercase letters — alphanumeric mode repairs invalid
+%% branches instead of raising.
+%%
+%% ```
+%% 1> brutils_cnpj:generate(<<"AB12">>, true).
+%% <<"2P9Q0746AB1220">>
+%% 2> brutils_cnpj:generate(<<"ab12">>, true).
+%% <<"RS7646P1000114">>
+%% '''
+-spec generate(Branch :: non_neg_integer() | binary(),
+               Alphanumeric :: boolean()) -> cnpj().
+generate(Branch, false) ->
+    generate(Branch);
+generate(Branch, true) ->
+    Branch4 = normalize_alnum_branch(Branch),
+    Root = << <<(alnum_char())>> || _ <- lists:seq(1, 8) >>,
+    Base12 = <<Root/binary, Branch4/binary>>,
+    <<Base12/binary, (checksum(Base12))/binary>>.
+
 %%--------------------------------------------------------------------
 %% Internal
 %%--------------------------------------------------------------------
@@ -149,6 +177,32 @@ normalize_branch(Branch) when is_binary(Branch), Branch =/= <<>> ->
     end;
 normalize_branch(Branch) when is_binary(Branch) ->
     error(badarg).
+
+%% Normalize a branch for alphanumeric mode: as text, first 4 chars
+%% or left-padded with zeros; `0000' and invalid content repair to
+%% `0001'.
+-spec normalize_alnum_branch(non_neg_integer() | binary()) -> <<_:32>>.
+normalize_alnum_branch(Branch) when is_integer(Branch), Branch >= 0 ->
+    normalize_alnum_branch(integer_to_binary(Branch));
+normalize_alnum_branch(Branch) when is_binary(Branch) ->
+    Sized = case byte_size(Branch) of
+                Size when Size >= 4 -> binary:part(Branch, 0, 4);
+                Size -> <<(binary:copy(<<"0">>, 4 - Size))/binary,
+                          Branch/binary>>
+            end,
+    case Sized =/= <<"0000">> andalso alphanumeric(Sized) of
+        true -> Sized;
+        false -> <<"0001">>
+    end.
+
+%% A random character from a pool where each digit appears three
+%% times and each uppercase letter once (30 + 26 = 56 outcomes).
+-spec alnum_char() -> byte().
+alnum_char() ->
+    case rand:uniform(56) of
+        N when N =< 30 -> $0 + (N - 1) rem 10;
+        N -> $A + (N - 31)
+    end.
 
 %% Every byte is a digit or an uppercase letter?
 -spec alphanumeric(binary()) -> boolean().

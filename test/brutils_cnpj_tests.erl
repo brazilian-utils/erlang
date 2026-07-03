@@ -232,3 +232,41 @@ generate_rejects_out_of_contract_branch_test() ->
 generate_is_random_test() ->
     Cnpjs = [brutils_cnpj:generate() || _ <- lists:seq(1, 100)],
     ?assert(length(lists:usort(Cnpjs)) > 1).
+
+%%--------------------------------------------------------------------
+%% generate/2 — alphanumeric mode
+%%--------------------------------------------------------------------
+
+generate2_false_behaves_as_numeric_test() ->
+    ?assertEqual(<<"0001">>, branch_of(brutils_cnpj:generate(1, false))),
+    ?assertEqual(<<"2345">>, branch_of(brutils_cnpj:generate(12345, false))),
+    ?assertError(badarg, brutils_cnpj:generate(<<"AB12">>, false)).
+
+generate2_produces_valid_alphanumeric_cnpjs_test() ->
+    %% smoke check; the exhaustive statement lives in the property suite
+    lists:foreach(
+      fun(_) ->
+              Cnpj = brutils_cnpj:generate(1, true),
+              ?assertEqual(14, byte_size(Cnpj)),
+              ?assert(brutils_cnpj:is_valid(Cnpj)),
+              ?assertEqual(<<"0001">>, branch_of(Cnpj))
+      end,
+      lists:seq(1, 100)).
+
+generate2_keeps_valid_alphanumeric_branch_test() ->
+    ?assertEqual(<<"AB12">>, branch_of(brutils_cnpj:generate(<<"AB12">>, true))),
+    ?assert(brutils_cnpj:is_valid(brutils_cnpj:generate(<<"AB12">>, true))).
+
+generate2_pads_short_branch_test() ->
+    ?assertEqual(<<"0AB1">>, branch_of(brutils_cnpj:generate(<<"AB1">>, true))),
+    ?assertEqual(<<"0042">>, branch_of(brutils_cnpj:generate(42, true))).
+
+generate2_truncates_long_branch_test() ->
+    ?assertEqual(<<"ABCD">>, branch_of(brutils_cnpj:generate(<<"ABCDE">>, true))),
+    ?assertEqual(<<"1234">>, branch_of(brutils_cnpj:generate(12345, true))).
+
+generate2_repairs_invalid_branch_to_0001_test() ->
+    %% alphanumeric mode repairs instead of raising
+    ?assertEqual(<<"0001">>, branch_of(brutils_cnpj:generate(<<"0000">>, true))),
+    ?assertEqual(<<"0001">>, branch_of(brutils_cnpj:generate(<<"ab12">>, true))),
+    ?assertEqual(<<"0001">>, branch_of(brutils_cnpj:generate(<<"AB-1">>, true))).
