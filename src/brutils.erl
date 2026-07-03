@@ -8,6 +8,9 @@
 
 %% CPF
 -export([is_valid_cpf/1, format_cpf/1, remove_symbols_cpf/1, generate_cpf/0]).
+%% CNPJ
+-export([is_valid_cnpj/1, format_cnpj/1, remove_symbols_cnpj/1,
+         generate_cnpj/0, generate_cnpj/1, generate_cnpj/2]).
 
 %%--------------------------------------------------------------------
 %% CPF
@@ -37,3 +40,47 @@ remove_symbols_cpf(Cpf) ->
 -spec generate_cpf() -> brutils_cpf:cpf().
 generate_cpf() ->
     brutils_cpf:generate().
+
+%%--------------------------------------------------------------------
+%% CNPJ
+%%--------------------------------------------------------------------
+
+%% @doc Returns whether the given term is a valid CNPJ.
+%% @see brutils_cnpj:is_valid/1
+-spec is_valid_cnpj(term()) -> boolean().
+is_valid_cnpj(Cnpj) ->
+    brutils_cnpj:is_valid(Cnpj).
+
+%% @doc Formats a valid CNPJ for display (`<<"XX.XXX.XXX/XXXX-XX">>').
+%% @see brutils_cnpj:format/1
+-spec format_cnpj(binary()) ->
+        {ok, brutils_cnpj:formatted_cnpj()} | {error, invalid}.
+format_cnpj(Cnpj) ->
+    brutils_cnpj:format(Cnpj).
+
+%% @doc Removes the formatting symbols `.', `/' and `-' from a CNPJ
+%% string.
+%% @see brutils_cnpj:remove_symbols/1
+-spec remove_symbols_cnpj(binary()) -> binary().
+remove_symbols_cnpj(Cnpj) ->
+    brutils_cnpj:remove_symbols(Cnpj).
+
+%% @doc Generates a random valid CNPJ with branch number `0001'.
+%% @see brutils_cnpj:generate/0
+-spec generate_cnpj() -> brutils_cnpj:cnpj().
+generate_cnpj() ->
+    brutils_cnpj:generate().
+
+%% @doc Generates a random valid CNPJ with the given branch number.
+%% @see brutils_cnpj:generate/1
+-spec generate_cnpj(Branch :: non_neg_integer() | binary()) ->
+        brutils_cnpj:cnpj().
+generate_cnpj(Branch) ->
+    brutils_cnpj:generate(Branch).
+
+%% @doc Generates a random valid CNPJ, optionally alphanumeric.
+%% @see brutils_cnpj:generate/2
+-spec generate_cnpj(Branch :: non_neg_integer() | binary(),
+                    Alphanumeric :: boolean()) -> brutils_cnpj:cnpj().
+generate_cnpj(Branch, Alphanumeric) ->
+    brutils_cnpj:generate(Branch, Alphanumeric).

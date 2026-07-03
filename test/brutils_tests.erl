@@ -29,3 +29,37 @@ generate_cpf_test() ->
     Cpf = brutils:generate_cpf(),
     ?assertEqual(11, byte_size(Cpf)),
     ?assert(brutils:is_valid_cpf(Cpf)).
+
+%%--------------------------------------------------------------------
+%% CNPJ
+%%--------------------------------------------------------------------
+
+is_valid_cnpj_test() ->
+    ?assert(brutils:is_valid_cnpj(<<"03560714000142">>)),
+    ?assert(brutils:is_valid_cnpj(<<"6Q4E392H000190">>)),   % alphanumeric
+    ?assertNot(brutils:is_valid_cnpj(<<"00111222000133">>)),
+    ?assertNot(brutils:is_valid_cnpj(3560714000142)).
+
+format_cnpj_test() ->
+    ?assertEqual({ok, <<"03.560.714/0001-42">>},
+                 brutils:format_cnpj(<<"03560714000142">>)),
+    ?assertEqual({error, invalid}, brutils:format_cnpj(<<"123">>)).
+
+remove_symbols_cnpj_test() ->
+    ?assertEqual(<<"03560714000142">>,
+                 brutils:remove_symbols_cnpj(<<"03.560.714/0001-42">>)).
+
+generate_cnpj_test() ->
+    Cnpj = brutils:generate_cnpj(),
+    ?assertEqual(14, byte_size(Cnpj)),
+    ?assert(brutils:is_valid_cnpj(Cnpj)).
+
+generate_cnpj_with_branch_test() ->
+    Cnpj = brutils:generate_cnpj(42),
+    ?assertEqual(<<"0042">>, binary:part(Cnpj, 8, 4)),
+    ?assert(brutils:is_valid_cnpj(Cnpj)).
+
+generate_cnpj_alphanumeric_test() ->
+    Cnpj = brutils:generate_cnpj(<<"AB12">>, true),
+    ?assertEqual(<<"AB12">>, binary:part(Cnpj, 8, 4)),
+    ?assert(brutils:is_valid_cnpj(Cnpj)).
