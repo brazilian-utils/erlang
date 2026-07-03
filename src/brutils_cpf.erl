@@ -96,9 +96,7 @@ generate() ->
     N = rand:uniform(999999998),
     Base = list_to_binary(io_lib:format("~9..0b", [N])),
     <<First, _/binary>> = Base,
-    Dv1 = $0 + hash_digit(Base, 10),
-    Dv2 = $0 + hash_digit(<<Base/binary, Dv1>>, 11),
-    Cpf = <<Base/binary, Dv1, Dv2>>,
+    Cpf = <<Base/binary, (checksum(Base))/binary>>,
     case repeated(Cpf, First) of
         true -> generate();
         false -> Cpf
@@ -118,13 +116,19 @@ all_digits(_) -> false.
 repeated(Cpf, First) ->
     Cpf =:= binary:copy(<<First>>, byte_size(Cpf)).
 
-%% Both check digits (bytes 10 and 11) match the ones computed from
-%% the digits preceding them.
--spec checksum_ok(binary()) -> boolean().
-checksum_ok(Cpf) ->
-    <<Base9:9/binary, Dv1, Dv2>> = Cpf,
-    Dv1 =:= $0 + hash_digit(Base9, 10)
-        andalso Dv2 =:= $0 + hash_digit(<<Base9/binary, Dv1>>, 11).
+%% The two check digits (bytes 10 and 11) match the ones computed
+%% from the 9-digit base number.
+-spec checksum_ok(cpf()) -> boolean().
+checksum_ok(<<Base9:9/binary, Dvs:2/binary>>) ->
+    Dvs =:= checksum(Base9).
+
+%% The two check digits for a 9-digit base number: the first is
+%% computed over the base, the second over the base plus the first.
+-spec checksum(<<_:72>>) -> <<_:16>>.
+checksum(Base9) ->
+    Dv1 = $0 + hash_digit(Base9, 10),
+    Dv2 = $0 + hash_digit(<<Base9/binary, Dv1>>, 11),
+    <<Dv1, Dv2>>.
 
 %% Check digit for position `Position': weighted sum of the preceding
 %% digits with weights descending from `Position' to 2, mod 11; values
@@ -137,6 +141,7 @@ hash_digit(Digits, Position) ->
         Val -> 11 - Val
     end.
 
+-spec weighted_sum(binary(), integer(), non_neg_integer()) -> non_neg_integer().
 weighted_sum(<<C, Rest/binary>>, Weight, Acc) ->
     weighted_sum(Rest, Weight - 1, Acc + (C - $0) * Weight);
 weighted_sum(<<>>, _Weight, Acc) ->
