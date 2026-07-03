@@ -163,3 +163,28 @@ generate_phone_test() ->
     ?assert(brutils:is_valid_phone(brutils:generate_phone())),
     ?assert(brutils:is_valid_phone(brutils:generate_phone(mobile), mobile)),
     ?assert(brutils:is_valid_phone(brutils:generate_phone(landline), landline)).
+
+%%--------------------------------------------------------------------
+%% Passport
+%%--------------------------------------------------------------------
+
+is_valid_passport_test() ->
+    ?assert(brutils:is_valid_passport(<<"AB123456">>)),
+    ?assertNot(brutils:is_valid_passport(<<"Ab123456">>)),   % case-sensitive
+    ?assertNot(brutils:is_valid_passport(12345678)).
+
+format_passport_test() ->
+    %% the lenient-format / strict-validate asymmetry survives the facade
+    ?assertNot(brutils:is_valid_passport(<<"ab-123456">>)),
+    ?assertEqual({ok, <<"AB123456">>},
+                 brutils:format_passport(<<"ab-123456">>)),
+    ?assertEqual({error, invalid}, brutils:format_passport(<<"111111">>)).
+
+remove_symbols_passport_test() ->
+    ?assertEqual(<<"Ab123456">>,
+                 brutils:remove_symbols_passport(<<"Ab -. 123456">>)).
+
+generate_passport_test() ->
+    Passport = brutils:generate_passport(),
+    ?assertEqual(8, byte_size(Passport)),
+    ?assert(brutils:is_valid_passport(Passport)).

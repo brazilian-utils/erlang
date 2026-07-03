@@ -23,6 +23,9 @@
 -export([is_valid_phone/1, is_valid_phone/2, format_phone/1,
          remove_symbols_phone/1, remove_international_dialing_code/1,
          generate_phone/0, generate_phone/1]).
+%% Passport
+-export([is_valid_passport/1, format_passport/1, remove_symbols_passport/1,
+         generate_passport/0]).
 
 %%--------------------------------------------------------------------
 %% CPF
@@ -228,3 +231,36 @@ generate_phone() ->
 -spec generate_phone(brutils_phone:phone_type()) -> binary().
 generate_phone(Type) ->
     brutils_phone:generate(Type).
+
+%%--------------------------------------------------------------------
+%% Passport
+%%--------------------------------------------------------------------
+
+%% @doc Returns whether the given term is a valid passport number
+%% (2 uppercase letters + 6 digits; case-sensitive, no stripping).
+%% @see brutils_passport:is_valid/1
+-spec is_valid_passport(term()) -> boolean().
+is_valid_passport(Passport) ->
+    brutils_passport:is_valid(Passport).
+
+%% @doc Normalizes (uppercases, strips symbols) and formats a
+%% passport number — the lenient counterpart to
+%% {@link is_valid_passport/1}.
+%% @see brutils_passport:format/1
+-spec format_passport(binary()) ->
+        {ok, brutils_passport:passport()} | {error, invalid}.
+format_passport(Passport) ->
+    brutils_passport:format(Passport).
+
+%% @doc Removes the symbols `-', `.' and spaces from a passport
+%% string (case is preserved).
+%% @see brutils_passport:remove_symbols/1
+-spec remove_symbols_passport(binary()) -> binary().
+remove_symbols_passport(Passport) ->
+    brutils_passport:remove_symbols(Passport).
+
+%% @doc Generates a random valid passport number.
+%% @see brutils_passport:generate/0
+-spec generate_passport() -> brutils_passport:passport().
+generate_passport() ->
+    brutils_passport:generate().
