@@ -61,3 +61,33 @@ is_valid_rejects_repeated_digits_test() ->
               ?assertNot(brutils_cpf:is_valid(Cpf))
       end,
       lists:seq($0, $9)).
+
+%%--------------------------------------------------------------------
+%% is_valid/1 — check digits
+%%--------------------------------------------------------------------
+
+is_valid_accepts_valid_cpfs_test() ->
+    ?assert(brutils_cpf:is_valid(<<"82178537464">>)),
+    ?assert(brutils_cpf:is_valid(<<"55550207753">>)),
+    ?assert(brutils_cpf:is_valid(<<"52599927765">>)),
+    ?assert(brutils_cpf:is_valid(<<"33545126951">>)),
+    ?assert(brutils_cpf:is_valid(<<"38291633126">>)).
+
+is_valid_rejects_bad_second_check_digit_test() ->
+    %% every wrong value for the last digit of a valid CPF must fail
+    Base = <<"8217853746">>,
+    lists:foreach(
+      fun(D) when D =:= $4 -> ok;
+         (D) -> ?assertNot(brutils_cpf:is_valid(<<Base/binary, D>>))
+      end,
+      lists:seq($0, $9)).
+
+is_valid_rejects_bad_first_check_digit_test() ->
+    %% corrupt the 10th digit ($6 in 82178537464), keep the rest
+    lists:foreach(
+      fun(D) when D =:= $6 -> ok;
+         (D) ->
+              Cpf = <<"821785374", D, "4">>,
+              ?assertNot(brutils_cpf:is_valid(Cpf))
+      end,
+      lists:seq($0, $9)).
