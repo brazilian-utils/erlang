@@ -1,10 +1,12 @@
-# brutils
+![Logo do Brazilian Utils](https://github.com/brazilian-utils/brand/raw/main/github-hero/github-hero-js.png)
 
-Erlang port of [brutils](https://github.com/brazilian-utils/brutils-python) —
-utils library for specific Brazilian businesses (CPF, CNPJ, CEP, phone numbers,
-license plates, and more).
+<div align="center">
 
-Design documents live in [`spec/`](spec/00-overview.md); implementation follows them.
+<p>Utils library for Brazilian-specific businesses.</p>
+
+<p><strong>Erlang</strong>
+
+</div>
 
 ## Build
 
