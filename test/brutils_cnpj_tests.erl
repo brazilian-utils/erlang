@@ -73,3 +73,42 @@ is_valid_rejects_repeated_chars_test() ->
               ?assertNot(brutils_cnpj:is_valid(Cnpj))
       end,
       lists:seq($0, $9) ++ [$A, $Z]).
+
+%%--------------------------------------------------------------------
+%% is_valid/1 — check digits (numeric CNPJs)
+%%--------------------------------------------------------------------
+
+is_valid_accepts_valid_cnpjs_test() ->
+    %% 12345678901230 and 98765432100141 embed the reference checksum
+    %% vectors ("123456789012" -> "30", "987654321001" -> "41"); the
+    %% rest are fixtures produced by the reference implementation.
+    Valid = [<<"03560714000142">>,
+             <<"12345678901230">>,
+             <<"98765432100141">>,
+             <<"64426433000196">>,
+             <<"98071092000103">>,
+             <<"50696019000192">>,
+             <<"33562977123407">>],
+    lists:foreach(fun(C) -> ?assert(brutils_cnpj:is_valid(C)) end, Valid).
+
+is_valid_rejects_bad_check_digits_test() ->
+    ?assertNot(brutils_cnpj:is_valid(<<"00111222000133">>)).
+
+is_valid_rejects_bad_second_check_digit_test() ->
+    %% every wrong value for the last digit of a valid CNPJ must fail
+    Base = <<"0356071400014">>,
+    lists:foreach(
+      fun(D) when D =:= $2 -> ok;
+         (D) -> ?assertNot(brutils_cnpj:is_valid(<<Base/binary, D>>))
+      end,
+      lists:seq($0, $9)).
+
+is_valid_rejects_bad_first_check_digit_test() ->
+    %% corrupt the 13th char ($4 in 03560714000142), keep the rest
+    lists:foreach(
+      fun(D) when D =:= $4 -> ok;
+         (D) ->
+              Cnpj = <<"035607140001", D, "2">>,
+              ?assertNot(brutils_cnpj:is_valid(Cnpj))
+      end,
+      lists:seq($0, $9)).

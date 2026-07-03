@@ -31,22 +31,32 @@
 remove_symbols(Cnpj) when is_binary(Cnpj) ->
     << <<C>> || <<C>> <= Cnpj, C =/= $., C =/= $/, C =/= $- >>.
 
-%% @doc Returns whether the given term has the shape of a valid CNPJ:
-%% a 14-character binary whose first 12 characters are digits or
-%% uppercase letters, whose last 2 characters (the check digits) are
-%% digits, and which is not a sequence of one repeated character.
+%% @doc Returns whether the given term is a valid CNPJ: a 14-character
+%% binary whose first 12 characters are digits or uppercase letters,
+%% whose last 2 characters are digits, which is not a sequence of one
+%% repeated character, and whose two check digits match the ones
+%% computed from its 12-character base.
 %%
-%% Lowercase letters are always invalid — they are never case-folded.
-%% Formatting symbols are not stripped, so a formatted CNPJ such as
-%% `<<"03.560.714/0001-42">>' is invalid; clean it with
+%% Only the format is verified — the CNPJ is not checked for
+%% existence. Lowercase letters are always invalid — they are never
+%% case-folded. Formatting symbols are not stripped, so a formatted
+%% CNPJ such as `<<"03.560.714/0001-42">>' is invalid; clean it with
 %% {@link remove_symbols/1} first. The function is total: any
 %% non-binary term returns `false' rather than raising.
+%%
+%% ```
+%% 1> brutils_cnpj:is_valid(<<"03560714000142">>).
+%% true
+%% 2> brutils_cnpj:is_valid(<<"00111222000133">>).
+%% false
+%% '''
 -spec is_valid(term()) -> boolean().
 is_valid(<<First, _/binary>> = Cnpj) when byte_size(Cnpj) =:= 14 ->
     <<Base12:12/binary, Dvs:2/binary>> = Cnpj,
     alphanumeric(Base12)
         andalso all_digits(Dvs)
-        andalso not repeated(Cnpj, First);
+        andalso not repeated(Cnpj, First)
+        andalso Dvs =:= checksum(Base12);
 is_valid(_) ->
     false.
 
@@ -70,3 +80,35 @@ all_digits(_) -> false.
 -spec repeated(binary(), byte()) -> boolean().
 repeated(Cnpj, First) ->
     Cnpj =:= binary:copy(<<First>>, byte_size(Cnpj)).
+
+%% The two check digits for a 12-character base: the first is computed
+%% over the base, the second over the base plus the first.
+-spec checksum(<<_:96>>) -> <<_:16>>.
+checksum(Base12) ->
+    Dv1 = $0 + hash_digit(Base12, 13),
+    Dv2 = $0 + hash_digit(<<Base12/binary, Dv1>>, 14),
+    <<Dv1, Dv2>>.
+
+%% Check digit for position `Position': weighted sum of the preceding
+%% characters, mod 11; values below 2 map to 0, otherwise the digit is
+%% the complement to 11. Weights descend from `Position - 8' to 2 and
+%% then restart at 9, descending to 2 again. Character values are
+%% ASCII-based (`C - $0'), so digits map to 0..9 and uppercase letters
+%% to 17..42 — the same rule covers numeric and alphanumeric CNPJs.
+-spec hash_digit(binary(), 13 | 14) -> 0..9.
+hash_digit(Chars, Position) ->
+    Sum = weighted_sum(Chars, Position - 8, 0),
+    case Sum rem 11 of
+        Val when Val < 2 -> 0;
+        Val -> 11 - Val
+    end.
+
+-spec weighted_sum(binary(), 2..9, non_neg_integer()) -> non_neg_integer().
+weighted_sum(<<C, Rest/binary>>, Weight, Acc) ->
+    Next = case Weight of
+               2 -> 9;
+               _ -> Weight - 1
+           end,
+    weighted_sum(Rest, Next, Acc + (C - $0) * Weight);
+weighted_sum(<<>>, _Weight, Acc) ->
+    Acc.
