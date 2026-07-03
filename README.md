@@ -41,6 +41,11 @@ domain module directly.
   - [format_cpf](#format_cpf)
   - [remove_symbols_cpf](#remove_symbols_cpf)
   - [generate_cpf](#generate_cpf)
+- [CNPJ](#cnpj)
+  - [is_valid_cnpj](#is_valid_cnpj)
+  - [format_cnpj](#format_cnpj)
+  - [remove_symbols_cnpj](#remove_symbols_cnpj)
+  - [generate_cnpj](#generate_cnpj)
 
 ## CPF
 
@@ -128,6 +133,104 @@ Example:
 <<"44635843700">>
 2> brutils:generate_cpf().
 <<"06854668417">>
+```
+
+## CNPJ
+
+### is_valid_cnpj
+
+Returns whether the verifying checksum digits of the given CNPJ (Brazilian
+Company Registration Number) match its base number. Both the numeric format
+and the 2026 alphanumeric format (digits and uppercase letters in the first
+12 characters) are supported. This function does not verify the existence of
+the CNPJ; it only validates the format of the string.
+
+Args:
+
+- `Cnpj` (`term()`): the CNPJ to be validated, a 14-character binary. Any
+  other term returns `false` — the function never raises.
+
+Returns:
+
+- `boolean()`: `true` if the checksum digits match the base number, `false`
+  otherwise. Lowercase letters are invalid, and formatting symbols are not
+  stripped — clean the input with `remove_symbols_cnpj/1` first.
+
+Example:
+
+```erlang
+1> brutils:is_valid_cnpj(<<"03560714000142">>).
+true
+2> brutils:is_valid_cnpj(<<"00111222000133">>).
+false
+3> brutils:is_valid_cnpj(<<"6Q4E392H000190">>).
+true
+```
+
+### format_cnpj
+
+Formats a valid CNPJ for display, adding the standard visual aid symbols
+(`XX.XXX.XXX/XXXX-XX`).
+
+Args:
+
+- `Cnpj` (`binary()`): a symbols-free CNPJ binary, numeric or alphanumeric.
+
+Returns:
+
+- `{ok, Formatted}` with the formatted CNPJ, or `{error, invalid}` if the
+  input is not a valid CNPJ.
+
+Example:
+
+```erlang
+1> brutils:format_cnpj(<<"03560714000142">>).
+{ok,<<"03.560.714/0001-42">>}
+2> brutils:format_cnpj(<<"00111222000133">>).
+{error,invalid}
+```
+
+### remove_symbols_cnpj
+
+Removes the formatting symbols `.`, `/` and `-` from a CNPJ string. Only
+those three characters are removed; anything else is kept unchanged.
+
+Args:
+
+- `Cnpj` (`binary()`): the CNPJ binary containing symbols to be removed.
+
+Returns:
+
+- `binary()`: a new binary with the specified symbols removed.
+
+Example:
+
+```erlang
+1> brutils:remove_symbols_cnpj(<<"03.560.714/0001-42">>).
+<<"03560714000142">>
+```
+
+### generate_cnpj
+
+Generates a random valid CNPJ. An optional branch number can be given
+(non-negative integer or digits-only binary; defaults to 1), and an optional
+alphanumeric flag switches to the 2026 alphanumeric format, where the branch
+may also contain uppercase letters and invalid branches are replaced by
+`0001`.
+
+Returns:
+
+- `binary()`: a random valid 14-character CNPJ.
+
+Example:
+
+```erlang
+1> brutils:generate_cnpj().
+<<"95427181000143">>
+2> brutils:generate_cnpj(1234).
+<<"44122762123483">>
+3> brutils:generate_cnpj(<<"AB12">>, true).
+<<"X8641237AB1272">>
 ```
 
 ## Author
