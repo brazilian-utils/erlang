@@ -67,6 +67,14 @@ is_valid_rejects_bad_check_digit_test() ->
 is_valid_rejects_spec_negative_test() ->
     ?assertNot(brutils_renavam:is_valid(<<"12345678901">>)).
 
+is_valid_zero_check_digit_covers_two_residues_test() ->
+    %% check digit 0 is the image of TWO weighted-sum residues (rem 0
+    %% and rem 1 both map to 0 through the >= 10 collapse), so two
+    %% valid RENAVAMs with dv 0 can differ in a single base digit.
+    %% Both values confirmed valid by the reference implementation.
+    ?assert(brutils_renavam:is_valid(<<"79754323190">>)),
+    ?assert(brutils_renavam:is_valid(<<"09754323190">>)).
+
 is_valid_requires_reversed_base_test() ->
     %% regression guard for the algorithm's distinctive twist: the
     %% weighted sum runs over the REVERSED 10-digit base. This value
