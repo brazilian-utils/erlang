@@ -38,3 +38,39 @@ is_valid_rejects_repeated_digits_test() ->
               ?assertNot(brutils_renavam:is_valid(Renavam))
       end,
       lists:seq($0, $9)).
+
+%%--------------------------------------------------------------------
+%% is_valid/1 — check digit
+%%--------------------------------------------------------------------
+
+is_valid_accepts_valid_renavams_test() ->
+    %% fixtures derived through the reference implementation
+    Valid = [<<"86769597308">>,   % spec anchor, executed
+             <<"52601815907">>,
+             <<"83016613182">>,
+             <<"60913909967">>,
+             <<"03082462814">>,
+             <<"94821993516">>,
+             <<"79754323190">>,   % dv sum maps through >= 10 -> 0
+             <<"00000000019">>],  % near-zero base
+    lists:foreach(fun(R) -> ?assert(brutils_renavam:is_valid(R)) end, Valid).
+
+is_valid_rejects_bad_check_digit_test() ->
+    %% every wrong value for the last digit of a valid RENAVAM must fail
+    Base = <<"5260181590">>,
+    lists:foreach(
+      fun(D) when D =:= $7 -> ok;
+         (D) -> ?assertNot(brutils_renavam:is_valid(<<Base/binary, D>>))
+      end,
+      lists:seq($0, $9)).
+
+is_valid_rejects_spec_negative_test() ->
+    ?assertNot(brutils_renavam:is_valid(<<"12345678901">>)).
+
+is_valid_requires_reversed_base_test() ->
+    %% regression guard for the algorithm's distinctive twist: the
+    %% weighted sum runs over the REVERSED 10-digit base. This value
+    %% has a correct check digit under a NON-reversed fold with the
+    %% same weight table, but the reference rejects it — if the
+    %% reversal is ever "simplified" away, this test fails.
+    ?assertNot(brutils_renavam:is_valid(<<"48757491182">>)).
