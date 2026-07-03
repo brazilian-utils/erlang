@@ -8,7 +8,7 @@
 %% significant, so a CPF is never handled as an integer.
 -module(brutils_cpf).
 
--export([remove_symbols/1, is_valid/1, format/1]).
+-export([remove_symbols/1, is_valid/1, format/1, generate/0]).
 
 -type cpf() :: <<_:88>>.
 %% A raw CPF: 11 ASCII digits, e.g. `<<"82178537464">>'.
@@ -79,6 +79,29 @@ format(Cpf) when is_binary(Cpf) ->
             {ok, <<A/binary, $., B/binary, $., C/binary, $-, Dv/binary>>};
         false ->
             {error, invalid}
+    end.
+
+%% @doc Generates a random valid CPF as a raw, numbers-only binary.
+%%
+%% The 9-digit base is drawn uniformly (never the reserved all-zeros
+%% base) and the two check digits are computed from it, so the result
+%% always satisfies {@link is_valid/1}.
+%%
+%% ```
+%% 1> brutils_cpf:generate().
+%% <<"10895948109">>
+%% '''
+-spec generate() -> cpf().
+generate() ->
+    N = rand:uniform(999999998),
+    Base = list_to_binary(io_lib:format("~9..0b", [N])),
+    <<First, _/binary>> = Base,
+    Dv1 = $0 + hash_digit(Base, 10),
+    Dv2 = $0 + hash_digit(<<Base/binary, Dv1>>, 11),
+    Cpf = <<Base/binary, Dv1, Dv2>>,
+    case repeated(Cpf, First) of
+        true -> generate();
+        false -> Cpf
     end.
 
 %%--------------------------------------------------------------------

@@ -115,3 +115,22 @@ format_already_formatted_is_invalid_test() ->
 format_non_binary_is_out_of_contract_test() ->
     ?assertError(function_clause, brutils_cpf:format(82178537464)),
     ?assertError(function_clause, brutils_cpf:format("82178537464")).
+
+%%--------------------------------------------------------------------
+%% generate/0
+%%--------------------------------------------------------------------
+
+generate_produces_valid_cpfs_test() ->
+    %% smoke check; the exhaustive statement lives in the property suite
+    lists:foreach(
+      fun(_) ->
+              Cpf = brutils_cpf:generate(),
+              ?assertEqual(11, byte_size(Cpf)),
+              ?assert(brutils_cpf:is_valid(Cpf))
+      end,
+      lists:seq(1, 100)).
+
+generate_is_random_test() ->
+    %% 100 draws from a >=999998-value space must not all collide
+    Cpfs = [brutils_cpf:generate() || _ <- lists:seq(1, 100)],
+    ?assert(length(lists:usort(Cpfs)) > 1).
