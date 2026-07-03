@@ -160,3 +160,34 @@ is_valid_rejects_corrupted_alphanumeric_base_test() ->
     %% swapping one base letter for another changes the checksum
     ?assertNot(brutils_cnpj:is_valid(<<"6Q4E392I000190">>)),   % H -> I
     ?assertNot(brutils_cnpj:is_valid(<<"7Q4E392H000190">>)).   % 6 -> 7
+
+%%--------------------------------------------------------------------
+%% format/1
+%%--------------------------------------------------------------------
+
+format_valid_cnpj_test() ->
+    ?assertEqual({ok, <<"03.560.714/0001-42">>},
+                 brutils_cnpj:format(<<"03560714000142">>)),
+    ?assertEqual({ok, <<"64.426.433/0001-96">>},
+                 brutils_cnpj:format(<<"64426433000196">>)).
+
+format_valid_alphanumeric_cnpj_test() ->
+    ?assertEqual({ok, <<"6Q.4E3.92H/0001-90">>},
+                 brutils_cnpj:format(<<"6Q4E392H000190">>)),
+    ?assertEqual({ok, <<"85.77H.E6N/AB12-49">>},
+                 brutils_cnpj:format(<<"8577HE6NAB1249">>)).
+
+format_invalid_cnpj_test() ->
+    ?assertEqual({error, invalid}, brutils_cnpj:format(<<"00111222000133">>)),
+    ?assertEqual({error, invalid}, brutils_cnpj:format(<<"11111111111111">>)),
+    ?assertEqual({error, invalid}, brutils_cnpj:format(<<"0356071400014">>)),
+    ?assertEqual({error, invalid}, brutils_cnpj:format(<<>>)).
+
+format_already_formatted_is_invalid_test() ->
+    %% format/1 does not strip symbols before validating
+    ?assertEqual({error, invalid},
+                 brutils_cnpj:format(<<"03.560.714/0001-42">>)).
+
+format_non_binary_is_out_of_contract_test() ->
+    ?assertError(function_clause, brutils_cnpj:format(3560714000142)),
+    ?assertError(function_clause, brutils_cnpj:format("03560714000142")).

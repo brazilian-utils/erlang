@@ -12,7 +12,16 @@
 %% significant, so a CNPJ is never handled as an integer.
 -module(brutils_cnpj).
 
--export([remove_symbols/1, is_valid/1]).
+-export([remove_symbols/1, is_valid/1, format/1]).
+
+-type cnpj() :: <<_:112>>.
+%% A raw CNPJ: 14 characters, digits or uppercase letters with numeric
+%% check digits, e.g. `<<"03560714000142">>'.
+
+-type formatted_cnpj() :: <<_:144>>.
+%% A display-formatted CNPJ, e.g. `<<"03.560.714/0001-42">>'.
+
+-export_type([cnpj/0, formatted_cnpj/0]).
 
 %% @doc Removes the formatting symbols `.', `/' and `-' from a CNPJ
 %% string.
@@ -59,6 +68,31 @@ is_valid(<<First, _/binary>> = Cnpj) when byte_size(Cnpj) =:= 14 ->
         andalso Dvs =:= checksum(Base12);
 is_valid(_) ->
     false.
+
+%% @doc Formats a valid CNPJ for display, adding the standard visual
+%% aid symbols: `<<"XX.XXX.XXX/XXXX-XX">>'.
+%%
+%% The input must be a raw, symbols-free CNPJ accepted by
+%% {@link is_valid/1} — numeric or alphanumeric; anything else yields
+%% `{error, invalid}'.
+%%
+%% ```
+%% 1> brutils_cnpj:format(<<"03560714000142">>).
+%% {ok,<<"03.560.714/0001-42">>}
+%% 2> brutils_cnpj:format(<<"00111222000133">>).
+%% {error,invalid}
+%% '''
+-spec format(binary()) -> {ok, formatted_cnpj()} | {error, invalid}.
+format(Cnpj) when is_binary(Cnpj) ->
+    case is_valid(Cnpj) of
+        true ->
+            <<A:2/binary, B:3/binary, C:3/binary,
+              Branch:4/binary, Dvs:2/binary>> = Cnpj,
+            {ok, <<A/binary, $., B/binary, $., C/binary,
+                   $/, Branch/binary, $-, Dvs/binary>>};
+        false ->
+            {error, invalid}
+    end.
 
 %%--------------------------------------------------------------------
 %% Internal
