@@ -15,6 +15,8 @@
 -export([is_valid_pis/1, format_pis/1, remove_symbols_pis/1, generate_pis/0]).
 %% CNH
 -export([is_valid_cnh/1]).
+%% RENAVAM
+-export([is_valid_renavam/1]).
 
 %%--------------------------------------------------------------------
 %% CPF
@@ -128,3 +130,14 @@ generate_pis() ->
 -spec is_valid_cnh(term()) -> boolean().
 is_valid_cnh(Cnh) ->
     brutils_cnh:is_valid(Cnh).
+
+%%--------------------------------------------------------------------
+%% RENAVAM
+%%--------------------------------------------------------------------
+
+%% @doc Returns whether the given term is a valid RENAVAM.
+%% Symbols are not stripped: the input must be digits only.
+%% @see brutils_renavam:is_valid/1
+-spec is_valid_renavam(term()) -> boolean().
+is_valid_renavam(Renavam) ->
+    brutils_renavam:is_valid(Renavam).

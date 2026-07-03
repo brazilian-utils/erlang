@@ -96,3 +96,13 @@ is_valid_cnh_test() ->
     ?assert(brutils:is_valid_cnh(<<"987654321-00">>)),   % symbols stripped
     ?assertNot(brutils:is_valid_cnh(<<"12345678901">>)),
     ?assertNot(brutils:is_valid_cnh(98765432100)).
+
+%%--------------------------------------------------------------------
+%% RENAVAM
+%%--------------------------------------------------------------------
+
+is_valid_renavam_test() ->
+    ?assert(brutils:is_valid_renavam(<<"86769597308">>)),
+    ?assertNot(brutils:is_valid_renavam(<<"867695973-08">>)),  % NOT stripped
+    ?assertNot(brutils:is_valid_renavam(<<"12345678901">>)),
+    ?assertNot(brutils:is_valid_renavam(86769597308)).
