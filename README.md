@@ -53,6 +53,8 @@ domain module directly.
   - [generate_pis](#generate_pis)
 - [CNH](#cnh)
   - [is_valid_cnh](#is_valid_cnh)
+- [RENAVAM](#renavam)
+  - [is_valid_renavam](#is_valid_renavam)
 
 ## CPF
 
@@ -368,6 +370,41 @@ true
 3> brutils:is_valid_cnh(<<"12345678901">>).
 false
 4> brutils:is_valid_cnh(<<"A2C45678901">>).
+false
+```
+
+## RENAVAM
+
+### is_valid_renavam
+
+Returns whether the given RENAVAM (Brazilian vehicle registration number) is
+valid: exactly 11 digits whose verifying check digit matches the base number.
+This function does not verify the existence of the RENAVAM; it only validates
+the format of the string.
+
+Unlike `is_valid_cnh`, symbols are **not** stripped: any non-digit character
+(space, dash, letter) makes the input invalid.
+
+Args:
+
+- `Renavam` (`term()`): the RENAVAM to be validated, an 11-digit binary. Any
+  other term returns `false` — the function never raises.
+
+Returns:
+
+- `boolean()`: `true` if the check digit matches the base number, `false`
+  otherwise.
+
+Example:
+
+```erlang
+1> brutils:is_valid_renavam(<<"86769597308">>).
+true
+2> brutils:is_valid_renavam(<<"12345678901">>).
+false
+3> brutils:is_valid_renavam(<<"867695973-08">>).
+false
+4> brutils:is_valid_renavam(<<"12345678 901">>).
 false
 ```
 
