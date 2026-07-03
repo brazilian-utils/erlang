@@ -12,7 +12,7 @@
 %% significant, so a CNPJ is never handled as an integer.
 -module(brutils_cnpj).
 
--export([remove_symbols/1]).
+-export([remove_symbols/1, is_valid/1]).
 
 %% @doc Removes the formatting symbols `.', `/' and `-' from a CNPJ
 %% string.
@@ -30,3 +30,43 @@
 -spec remove_symbols(binary()) -> binary().
 remove_symbols(Cnpj) when is_binary(Cnpj) ->
     << <<C>> || <<C>> <= Cnpj, C =/= $., C =/= $/, C =/= $- >>.
+
+%% @doc Returns whether the given term has the shape of a valid CNPJ:
+%% a 14-character binary whose first 12 characters are digits or
+%% uppercase letters, whose last 2 characters (the check digits) are
+%% digits, and which is not a sequence of one repeated character.
+%%
+%% Lowercase letters are always invalid — they are never case-folded.
+%% Formatting symbols are not stripped, so a formatted CNPJ such as
+%% `<<"03.560.714/0001-42">>' is invalid; clean it with
+%% {@link remove_symbols/1} first. The function is total: any
+%% non-binary term returns `false' rather than raising.
+-spec is_valid(term()) -> boolean().
+is_valid(<<First, _/binary>> = Cnpj) when byte_size(Cnpj) =:= 14 ->
+    <<Base12:12/binary, Dvs:2/binary>> = Cnpj,
+    alphanumeric(Base12)
+        andalso all_digits(Dvs)
+        andalso not repeated(Cnpj, First);
+is_valid(_) ->
+    false.
+
+%%--------------------------------------------------------------------
+%% Internal
+%%--------------------------------------------------------------------
+
+%% Every byte is a digit or an uppercase letter?
+-spec alphanumeric(binary()) -> boolean().
+alphanumeric(<<C, Rest/binary>>) when C >= $0, C =< $9; C >= $A, C =< $Z ->
+    alphanumeric(Rest);
+alphanumeric(<<>>) -> true;
+alphanumeric(_) -> false.
+
+-spec all_digits(binary()) -> boolean().
+all_digits(<<C, Rest/binary>>) when C >= $0, C =< $9 -> all_digits(Rest);
+all_digits(<<>>) -> true;
+all_digits(_) -> false.
+
+%% All bytes equal to the first one?
+-spec repeated(binary(), byte()) -> boolean().
+repeated(Cnpj, First) ->
+    Cnpj =:= binary:copy(<<First>>, byte_size(Cnpj)).
