@@ -126,8 +126,7 @@ generate(Branch) ->
     Branch4 = normalize_branch(Branch),
     N = rand:uniform(100000000) - 1,
     Root = list_to_binary(io_lib:format("~8..0b", [N])),
-    Base12 = <<Root/binary, Branch4/binary>>,
-    <<Base12/binary, (checksum(Base12))/binary>>.
+    from_base(<<Root/binary, Branch4/binary>>).
 
 %% @doc Generates a random valid CNPJ, optionally alphanumeric.
 %%
@@ -153,8 +152,7 @@ generate(Branch, false) ->
 generate(Branch, true) ->
     Branch4 = normalize_alnum_branch(Branch),
     Root = << <<(alnum_char())>> || _ <- lists:seq(1, 8) >>,
-    Base12 = <<Root/binary, Branch4/binary>>,
-    <<Base12/binary, (checksum(Base12))/binary>>.
+    from_base(<<Root/binary, Branch4/binary>>).
 
 %%--------------------------------------------------------------------
 %% Internal
@@ -170,13 +168,16 @@ normalize_branch(Branch) when is_integer(Branch), Branch >= 0 ->
             _ -> B0
         end,
     list_to_binary(io_lib:format("~4..0b", [B]));
-normalize_branch(Branch) when is_binary(Branch), Branch =/= <<>> ->
-    case all_digits(Branch) of
+normalize_branch(Branch) when is_binary(Branch) ->
+    case Branch =/= <<>> andalso all_digits(Branch) of
         true -> normalize_branch(binary_to_integer(Branch));
         false -> error(badarg)
-    end;
-normalize_branch(Branch) when is_binary(Branch) ->
-    error(badarg).
+    end.
+
+%% Append the computed check digits to a 12-character base.
+-spec from_base(<<_:96>>) -> cnpj().
+from_base(Base12) ->
+    <<Base12/binary, (checksum(Base12))/binary>>.
 
 %% Normalize a branch for alphanumeric mode: as text, first 4 chars
 %% or left-padded with zeros; `0000' and invalid content repair to
