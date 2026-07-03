@@ -46,6 +46,11 @@ domain module directly.
   - [format_cnpj](#format_cnpj)
   - [remove_symbols_cnpj](#remove_symbols_cnpj)
   - [generate_cnpj](#generate_cnpj)
+- [PIS](#pis)
+  - [is_valid_pis](#is_valid_pis)
+  - [format_pis](#format_pis)
+  - [remove_symbols_pis](#remove_symbols_pis)
+  - [generate_pis](#generate_pis)
 
 ## CPF
 
@@ -231,6 +236,100 @@ Example:
 <<"44122762123483">>
 3> brutils:generate_cnpj(<<"AB12">>, true).
 <<"X8641237AB1272">>
+```
+
+## PIS
+
+### is_valid_pis
+
+Returns whether the verifying check digit of the given PIS/PASEP (Brazilian
+social integration program number) matches its base number. This function
+does not verify the existence of the PIS; it only validates the format of
+the string.
+
+Args:
+
+- `Pis` (`term()`): the PIS to be validated, an 11-digit binary. Any other
+  term returns `false` — the function never raises.
+
+Returns:
+
+- `boolean()`: `true` if the check digit matches the base number, `false`
+  otherwise. PIS reserves no repeated-digit sequences — notably,
+  `<<"00000000000">>` has a matching check digit and is valid. Formatting
+  symbols are not stripped — clean the input with `remove_symbols_pis/1`
+  first.
+
+Example:
+
+```erlang
+1> brutils:is_valid_pis(<<"12056798818">>).
+true
+2> brutils:is_valid_pis(<<"12056798810">>).
+false
+3> brutils:is_valid_pis(<<"00000000000">>).
+true
+```
+
+### format_pis
+
+Formats a valid PIS for display, adding the standard visual aid symbols
+(`NNN.NNNNN.NN-N`).
+
+Args:
+
+- `Pis` (`binary()`): a numbers-only PIS binary.
+
+Returns:
+
+- `{ok, Formatted}` with the formatted PIS, or `{error, invalid}` if the
+  input is not a valid PIS.
+
+Example:
+
+```erlang
+1> brutils:format_pis(<<"12056798818">>).
+{ok,<<"120.56798.81-8">>}
+2> brutils:format_pis(<<"12056798810">>).
+{error,invalid}
+```
+
+### remove_symbols_pis
+
+Removes the formatting symbols `.` and `-` from a PIS string. Only those two
+characters are removed; anything else is kept unchanged.
+
+Args:
+
+- `Pis` (`binary()`): the PIS binary containing symbols to be removed.
+
+Returns:
+
+- `binary()`: a new binary with the specified symbols removed.
+
+Example:
+
+```erlang
+1> brutils:remove_symbols_pis(<<"120.56798.81-8">>).
+<<"12056798818">>
+```
+
+### generate_pis
+
+Generates a random valid PIS as a numbers-only binary. The base is drawn
+uniformly with zero included, so results may start with zeros.
+
+Returns:
+
+- `binary()`: a random valid 11-digit PIS.
+
+Example:
+
+```erlang
+1> brutils:generate_pis().
+<<"99360519414">>
+2> brutils:generate_pis().
+<<"95319303914">>
 ```
 
 ## Author
