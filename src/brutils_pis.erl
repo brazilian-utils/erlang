@@ -9,7 +9,15 @@
 %% significant, so a PIS is never handled as an integer.
 -module(brutils_pis).
 
--export([remove_symbols/1, is_valid/1]).
+-export([remove_symbols/1, is_valid/1, format/1]).
+
+-type pis() :: <<_:88>>.
+%% A raw PIS: 11 ASCII digits, e.g. `<<"12056798818">>'.
+
+-type formatted_pis() :: <<_:112>>.
+%% A display-formatted PIS, e.g. `<<"120.56798.81-8">>'.
+
+-export_type([pis/0, formatted_pis/0]).
 
 %% @doc Removes the formatting symbols `.' and `-' from a PIS string.
 %%
@@ -55,6 +63,28 @@ is_valid(Pis) when is_binary(Pis), byte_size(Pis) =:= 11 ->
                 end;
 is_valid(_) ->
     false.
+
+%% @doc Formats a valid PIS for display, adding the standard visual
+%% aid symbols: `<<"NNN.NNNNN.NN-N">>'.
+%%
+%% The input must be a raw, numbers-only PIS accepted by
+%% {@link is_valid/1}; anything else yields `{error, invalid}'.
+%%
+%% ```
+%% 1> brutils_pis:format(<<"12056798818">>).
+%% {ok,<<"120.56798.81-8">>}
+%% 2> brutils_pis:format(<<"12056798810">>).
+%% {error,invalid}
+%% '''
+-spec format(binary()) -> {ok, formatted_pis()} | {error, invalid}.
+format(Pis) when is_binary(Pis) ->
+    case is_valid(Pis) of
+        true ->
+            <<A:3/binary, B:5/binary, C:2/binary, Dv>> = Pis,
+            {ok, <<A/binary, $., B/binary, $., C/binary, $-, Dv>>};
+        false ->
+            {error, invalid}
+    end.
 
 %%--------------------------------------------------------------------
 %% Internal

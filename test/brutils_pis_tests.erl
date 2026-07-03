@@ -99,3 +99,29 @@ is_valid_rejects_borrowed_cpf_docstring_example_test() ->
     %% the reference docstring reuses a CPF value as its example;
     %% executing the reference shows it is NOT a valid PIS
     ?assertNot(brutils_pis:is_valid(<<"82178537464">>)).
+
+%%--------------------------------------------------------------------
+%% format/1
+%%--------------------------------------------------------------------
+
+format_valid_pis_test() ->
+    %% grouping is 3-5-2-1 with dots and a dash
+    ?assertEqual({ok, <<"120.56798.81-8">>},
+                 brutils_pis:format(<<"12056798818">>)),
+    ?assertEqual({ok, <<"635.44726.98-5">>},
+                 brutils_pis:format(<<"63544726985">>)),
+    ?assertEqual({ok, <<"030.02242.15-4">>},
+                 brutils_pis:format(<<"03002242154">>)).
+
+format_invalid_pis_test() ->
+    ?assertEqual({error, invalid}, brutils_pis:format(<<"12056798810">>)),
+    ?assertEqual({error, invalid}, brutils_pis:format(<<"1205679881">>)),
+    ?assertEqual({error, invalid}, brutils_pis:format(<<>>)).
+
+format_already_formatted_is_invalid_test() ->
+    %% format/1 does not strip symbols before validating
+    ?assertEqual({error, invalid}, brutils_pis:format(<<"120.56798.81-8">>)).
+
+format_non_binary_is_out_of_contract_test() ->
+    ?assertError(function_clause, brutils_pis:format(12056798818)),
+    ?assertError(function_clause, brutils_pis:format("12056798818")).
