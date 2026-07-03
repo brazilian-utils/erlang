@@ -8,7 +8,7 @@
 %% All functions operate on UTF-8 binaries.
 -module(brutils_phone).
 
--export([remove_symbols/1]).
+-export([remove_symbols/1, is_valid/1, is_valid/2]).
 
 -type phone_type() :: mobile | landline.
 -export_type([phone_type/0]).
@@ -30,3 +30,62 @@
 remove_symbols(Phone) when is_binary(Phone) ->
     << <<C>> || <<C>> <= Phone,
                 C =/= $(, C =/= $), C =/= $-, C =/= $+, C =/= $\s >>.
+
+%% @doc Returns whether the given term is a valid Brazilian phone
+%% number of either shape: mobile (11 digits) or landline (10).
+%%
+%% Equivalent to `is_valid(Phone, mobile) orelse
+%% is_valid(Phone, landline)'. It does not verify that the number
+%% actually exists. Formatting symbols are not stripped; clean the
+%% input with {@link remove_symbols/1} first. The function is total:
+%% any non-binary term returns `false' rather than raising.
+%%
+%% ```
+%% 1> brutils_phone:is_valid(<<"11994029275">>).
+%% true
+%% 2> brutils_phone:is_valid(<<"1635014415">>).
+%% true
+%% '''
+-spec is_valid(term()) -> boolean().
+is_valid(Phone) ->
+    is_valid(Phone, mobile) orelse is_valid(Phone, landline).
+
+%% @doc Returns whether the given term is a valid Brazilian phone
+%% number of the given type.
+%%
+%% Mobile numbers have 11 digits: a DDD of two digits from 1 to 9,
+%% then a `9', then 8 digits. Landline numbers have 10: the DDD, then
+%% a digit from 2 to 5, then 7 digits.
+%%
+%% The type must be the atom `mobile' or `landline'; anything else is
+%% out of contract and raises. (The reference implementation accepts
+%% any string as the type and silently falls back to checking both
+%% shapes — this port deliberately tightens that to the two atoms.)
+%%
+%% ```
+%% 1> brutils_phone:is_valid(<<"11994029275">>, mobile).
+%% true
+%% 2> brutils_phone:is_valid(<<"11994029275">>, landline).
+%% false
+%% '''
+-spec is_valid(term(), phone_type()) -> boolean().
+is_valid(<<D1, D2, $9, Rest/binary>>, mobile)
+  when D1 >= $1, D1 =< $9, D2 >= $1, D2 =< $9, byte_size(Rest) =:= 8 ->
+    all_digits(Rest);
+is_valid(_, mobile) ->
+    false;
+is_valid(<<D1, D2, D3, Rest/binary>>, landline)
+  when D1 >= $1, D1 =< $9, D2 >= $1, D2 =< $9,
+       D3 >= $2, D3 =< $5, byte_size(Rest) =:= 7 ->
+    all_digits(Rest);
+is_valid(_, landline) ->
+    false.
+
+%%--------------------------------------------------------------------
+%% Internal
+%%--------------------------------------------------------------------
+
+-spec all_digits(binary()) -> boolean().
+all_digits(<<C, Rest/binary>>) when C >= $0, C =< $9 -> all_digits(Rest);
+all_digits(<<>>) -> true;
+all_digits(_) -> false.
