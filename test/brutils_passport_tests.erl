@@ -77,3 +77,43 @@ is_valid_rejects_non_binary_test() ->
     ?assertNot(brutils_passport:is_valid("AB123456")),   % charlist
     ?assertNot(brutils_passport:is_valid(undefined)),
     ?assertNot(brutils_passport:is_valid(#{})).
+
+%%--------------------------------------------------------------------
+%% format/1 — the normalizing formatter: uppercases and strips
+%% symbols BEFORE validating (unlike every other format/1 in this
+%% library, which validates raw input as-is)
+%%--------------------------------------------------------------------
+
+format_normalizes_dressed_lowercase_test() ->
+    ?assertEqual({ok, <<"AB123456">>},
+                 brutils_passport:format(<<"ab-123456">>)),
+    ?assertEqual({ok, <<"AB123456">>},
+                 brutils_passport:format(<<"Ab123456">>)),
+    ?assertEqual({ok, <<"AB123456">>},
+                 brutils_passport:format(<<"a b. 12-3456">>)).
+
+format_and_is_valid_asymmetry_test() ->
+    %% the whole contract in two lines: the same input is invalid raw
+    %% but formats fine — lenient format, strict validate
+    ?assertNot(brutils_passport:is_valid(<<"ab-123456">>)),
+    ?assertEqual({ok, <<"AB123456">>},
+                 brutils_passport:format(<<"ab-123456">>)).
+
+format_passes_through_clean_input_test() ->
+    ?assertEqual({ok, <<"AB123456">>},
+                 brutils_passport:format(<<"AB123456">>)).
+
+format_invalid_passport_test() ->
+    ?assertEqual({error, invalid}, brutils_passport:format(<<"111111">>)),
+    ?assertEqual({error, invalid}, brutils_passport:format(<<"ABC12345">>)),
+    ?assertEqual({error, invalid}, brutils_passport:format(<<>>)).
+
+format_multibyte_input_is_invalid_test() ->
+    %% executed against the reference: a non-ASCII letter never
+    %% becomes valid through normalization
+    ?assertEqual({error, invalid},
+                 brutils_passport:format(<<"áb123456"/utf8>>)).
+
+format_non_binary_is_out_of_contract_test() ->
+    ?assertError(function_clause, brutils_passport:format(12345678)),
+    ?assertError(function_clause, brutils_passport:format("ab-123456")).

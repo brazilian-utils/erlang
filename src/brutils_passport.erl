@@ -7,7 +7,7 @@
 %% All functions operate on UTF-8 binaries.
 -module(brutils_passport).
 
--export([remove_symbols/1, is_valid/1]).
+-export([remove_symbols/1, is_valid/1, format/1]).
 
 -type passport() :: <<_:64>>.
 %% A passport number: 2 uppercase ASCII letters + 6 ASCII digits.
@@ -57,9 +57,42 @@ is_valid(<<L1, L2, Digits:6/binary>>)
 is_valid(_) ->
     false.
 
+%% @doc Normalizes and formats a passport number for display:
+%% uppercases ASCII letters and strips the symbols `-', `.' and
+%% spaces, then validates the result.
+%%
+%% This is the lenient counterpart to the strict {@link is_valid/1}:
+%% `format(<<"ab-123456">>)' succeeds where
+%% `is_valid(<<"ab-123456">>)' is `false'. Input that does not
+%% normalize into a valid passport — including non-ASCII letters —
+%% yields `{error, invalid}'.
+%%
+%% ```
+%% 1> brutils_passport:format(<<"ab-123456">>).
+%% {ok,<<"AB123456">>}
+%% 2> brutils_passport:format(<<"111111">>).
+%% {error,invalid}
+%% '''
+-spec format(binary()) -> {ok, passport()} | {error, invalid}.
+format(Passport) when is_binary(Passport) ->
+    Normalized = remove_symbols(ascii_uppercase(Passport)),
+    case is_valid(Normalized) of
+        true -> {ok, Normalized};
+        false -> {error, invalid}
+    end.
+
 %%--------------------------------------------------------------------
 %% Internal
 %%--------------------------------------------------------------------
+
+%% Uppercase ASCII letters only; every other byte is left unchanged
+%% (multibyte input therefore simply fails the later validation).
+-spec ascii_uppercase(binary()) -> binary().
+ascii_uppercase(Bin) ->
+    << <<(case C >= $a andalso C =< $z of
+              true -> C - 32;
+              false -> C
+          end)>> || <<C>> <= Bin >>.
 
 -spec all_digits(binary()) -> boolean().
 all_digits(<<C, Rest/binary>>) when C >= $0, C =< $9 -> all_digits(Rest);
