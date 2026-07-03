@@ -53,3 +53,42 @@ is_valid_strips_symbols_before_validating_test() ->
                            brutils_cnh:is_valid(Dressed))
       end,
       Pairs).
+
+%%--------------------------------------------------------------------
+%% is_valid/1 — check digits
+%%--------------------------------------------------------------------
+
+%% Fixtures derived by exhaustively searching the check-digit space
+%% through the reference implementation (exactly one pair validates
+%% per base).
+valid_fixtures() ->
+    [<<"98765432100">>,   % reference docstring anchor, executed
+     <<"10433218100">>,
+     <<"96001338941">>,
+     <<"08386379499">>,
+     <<"02654235141">>,
+     <<"81618495905">>,   % first-DV sum rem 11 =:= 10, maps to 0
+     <<"62704828170">>].  % second-DV sum rem 11 =:= 10, maps to 0
+
+is_valid_accepts_valid_cnhs_test() ->
+    lists:foreach(fun(C) -> ?assert(brutils_cnh:is_valid(C)) end,
+                  valid_fixtures()).
+
+is_valid_rejects_bad_second_check_digit_test() ->
+    %% every wrong value for the last digit of a valid CNH must fail
+    Base = <<"9600133894">>,
+    lists:foreach(
+      fun(D) when D =:= $1 -> ok;
+         (D) -> ?assertNot(brutils_cnh:is_valid(<<Base/binary, D>>))
+      end,
+      lists:seq($0, $9)).
+
+is_valid_rejects_bad_first_check_digit_test() ->
+    %% corrupt the 10th digit ($4 in 96001338941), keep the rest
+    lists:foreach(
+      fun(D) when D =:= $4 -> ok;
+         (D) ->
+              Cnh = <<"960013389", D, "1">>,
+              ?assertNot(brutils_cnh:is_valid(Cnh))
+      end,
+      lists:seq($0, $9)).
