@@ -1,0 +1,55 @@
+name: run-tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+
+jobs:
+  test:
+    name: Erlang/OTP ${{ matrix.otp }}
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        otp: ['25', '26', '27']
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Erlang/OTP and rebar3
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.otp }}
+          rebar3-version: '3.24.0'
+
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/rebar3
+            _build
+          key: test-${{ runner.os }}-otp${{ matrix.otp }}-${{ hashFiles('rebar.config') }}
+          restore-keys: |
+            test-${{ runner.os }}-otp${{ matrix.otp }}-
+
+      - name: EUnit
+        run: rebar3 eunit --cover
+
+      - name: PropEr
+        run: rebar3 proper -n 200 -c
+
+      - name: Coverage report
+        run: rebar3 cover --verbose
+
+      - name: Upload coverage HTML
+        if: matrix.otp == '27'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: _build/test/cover/

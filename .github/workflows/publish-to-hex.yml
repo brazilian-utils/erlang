@@ -1,0 +1,25 @@
+name: Publish to Hex
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    name: Publish package to Hex.pm
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Erlang/OTP and rebar3
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: '27'
+          rebar3-version: '3.24.0'
+
+      - name: Publish to Hex.pm
+        env:
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+        run: rebar3 hex publish -r hexpm --yes

@@ -1,0 +1,44 @@
+name: check-static
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  static:
+    name: Static analysis
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Erlang/OTP and rebar3
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: '27'
+          rebar3-version: '3.24.0'
+
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/rebar3
+            _build
+          key: static-${{ runner.os }}-${{ hashFiles('rebar.config') }}
+          restore-keys: |
+            static-${{ runner.os }}-
+
+      - name: Compile (warnings are errors)
+        run: rebar3 compile
+
+      - name: Cross-reference analysis
+        run: rebar3 xref
+
+      - name: Dialyzer
+        run: rebar3 dialyzer
+
+      - name: EDoc
+        run: rebar3 edoc
