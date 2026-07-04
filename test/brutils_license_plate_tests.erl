@@ -207,3 +207,44 @@ format_invalid_plate_test() ->
 format_non_binary_is_out_of_contract_test() ->
     ?assertError(function_clause, brutils_license_plate:format(1234567)),
     ?assertError(function_clause, brutils_license_plate:format("ABC1234")).
+
+%%--------------------------------------------------------------------
+%% generate/0,1
+%%--------------------------------------------------------------------
+
+generate_default_is_mercosul_test() ->
+    lists:foreach(
+      fun(_) ->
+              {ok, Plate} = brutils_license_plate:generate(),
+              ?assertEqual(7, byte_size(Plate)),
+              ?assert(brutils_license_plate:is_valid(Plate, mercosul))
+      end,
+      lists:seq(1, 100)).
+
+generate_old_format_pattern_test() ->
+    lists:foreach(
+      fun(_) ->
+              {ok, Plate} = brutils_license_plate:generate(<<"LLLNNNN">>),
+              ?assert(brutils_license_plate:is_valid(Plate, old_format))
+      end,
+      lists:seq(1, 100)).
+
+generate_mercosul_pattern_test() ->
+    {ok, Plate} = brutils_license_plate:generate(<<"LLLNLNN">>),
+    ?assert(brutils_license_plate:is_valid(Plate, mercosul)).
+
+generate_pattern_is_case_insensitive_test() ->
+    {ok, Plate} = brutils_license_plate:generate(<<"lllnlnn">>),
+    ?assert(brutils_license_plate:is_valid(Plate, mercosul)).
+
+generate_rejects_unknown_pattern_test() ->
+    ?assertEqual({error, invalid},
+                 brutils_license_plate:generate(<<"XXXXXXX">>)),
+    ?assertEqual({error, invalid},
+                 brutils_license_plate:generate(<<"LLLNNN">>)),
+    ?assertEqual({error, invalid}, brutils_license_plate:generate(<<>>)).
+
+generate_is_random_test() ->
+    Plates = [element(2, brutils_license_plate:generate())
+              || _ <- lists:seq(1, 100)],
+    ?assert(length(lists:usort(Plates)) > 1).

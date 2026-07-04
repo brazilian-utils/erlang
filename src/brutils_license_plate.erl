@@ -9,7 +9,7 @@
 -module(brutils_license_plate).
 
 -export([remove_symbols/1, is_valid/1, is_valid/2, get_format/1,
-         convert_to_mercosul/1, format/1]).
+         convert_to_mercosul/1, format/1, generate/0, generate/1]).
 
 -type plate_type() :: old_format | mercosul.
 %% The two plate patterns: `old_format' is `LLLNNNN', `mercosul' is
@@ -178,9 +178,50 @@ format(Plate) when is_binary(Plate) ->
             {error, invalid}
     end.
 
+%% @doc Generates a random valid Mercosul plate.
+%%
+%% Equivalent to `generate(<<"LLLNLNN">>)', but with no error case —
+%% the default pattern is always valid.
+%%
+%% ```
+%% 1> brutils_license_plate:generate().
+%% {ok,<<"BAR9B69">>}
+%% '''
+-spec generate() -> {ok, plate()}.
+generate() ->
+    {ok, from_pattern(<<"LLLNLNN">>)}.
+
+%% @doc Generates a random valid plate in the given pattern:
+%% `<<"LLLNNNN">>' (old format) or `<<"LLLNLNN">>' (Mercosul), case
+%% insensitive. Each `L' becomes a uniform uppercase letter and each
+%% `N' a uniform digit.
+%%
+%% ```
+%% 1> brutils_license_plate:generate(<<"LLLNNNN">>).
+%% {ok,<<"KCM5068">>}
+%% 2> brutils_license_plate:generate(<<"XXXXXXX">>).
+%% {error,invalid}
+%% '''
+-spec generate(binary()) -> {ok, plate()} | {error, invalid}.
+generate(Pattern) when is_binary(Pattern) ->
+    case ascii_uppercase(Pattern) of
+        Upper when Upper =:= <<"LLLNNNN">>; Upper =:= <<"LLLNLNN">> ->
+            {ok, from_pattern(Upper)};
+        _ ->
+            {error, invalid}
+    end.
+
 %%--------------------------------------------------------------------
 %% Internal
 %%--------------------------------------------------------------------
+
+%% Realize a pattern: L -> random uppercase letter, N -> random digit.
+-spec from_pattern(binary()) -> plate().
+from_pattern(Pattern) ->
+    << <<(case C of
+              $L -> $A + rand:uniform(26) - 1;
+              $N -> $0 + rand:uniform(10) - 1
+          end)>> || <<C>> <= Pattern >>.
 
 %% Trim surrounding ASCII whitespace and uppercase ASCII letters —
 %% the normalization every validating function applies first.
