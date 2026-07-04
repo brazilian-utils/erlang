@@ -11,7 +11,7 @@
 %% All functions operate on UTF-8 binaries.
 -module(brutils_voter_id).
 
--export([is_valid/1]).
+-export([is_valid/1, format/1]).
 
 -type voter_id() :: <<_:96>>.
 %% A generated voter id: always 12 digits. (Valid input may also be
@@ -51,6 +51,32 @@ is_valid(VoterId) when is_binary(VoterId),
         andalso checksum_ok(VoterId);
 is_valid(_) ->
     false.
+
+%% @doc Formats a valid 12-digit voter id for display with visual
+%% spacing: `<<"NNNN NNNN NN NN">>'.
+%%
+%% Valid 13-digit São Paulo / Minas Gerais titles yield
+%% `{error, invalid}': the display mask has no slot for the 9th
+%% sequential digit. (The reference implementation silently slices
+%% the first 12 digits of such titles, dropping the last digit and
+%% shifting every group — corrupting the value; this port refuses
+%% instead of corrupting.)
+%%
+%% ```
+%% 1> brutils_voter_id:format(<<"690847092828">>).
+%% {ok,<<"6908 4709 28 28">>}
+%% 2> brutils_voter_id:format(<<"3476353100183">>).
+%% {error,invalid}
+%% '''
+-spec format(binary()) -> {ok, formatted_voter_id()} | {error, invalid}.
+format(VoterId) when is_binary(VoterId) ->
+    case byte_size(VoterId) =:= 12 andalso is_valid(VoterId) of
+        true ->
+            <<A:4/binary, B:4/binary, C:2/binary, D:2/binary>> = VoterId,
+            {ok, <<A/binary, $\s, B/binary, $\s, C/binary, $\s, D/binary>>};
+        false ->
+            {error, invalid}
+    end.
 
 %%--------------------------------------------------------------------
 %% Internal

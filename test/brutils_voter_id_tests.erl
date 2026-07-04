@@ -120,3 +120,35 @@ fu_swap_can_coincide_test() ->
     %% suite.)
     ?assert(brutils_voter_id:is_valid(<<"347635311783">>)),   % FU 17
     ?assert(brutils_voter_id:is_valid(<<"347635312283">>)).   % FU 22
+
+%%--------------------------------------------------------------------
+%% format/1
+%%--------------------------------------------------------------------
+
+format_valid_voter_id_test() ->
+    %% grouping is 4-4-2-2 with spaces
+    ?assertEqual({ok, <<"6908 4709 28 28">>},
+                 brutils_voter_id:format(<<"690847092828">>)),
+    ?assertEqual({ok, <<"3476 3531 01 83">>},
+                 brutils_voter_id:format(<<"347635310183">>)).
+
+format_rejects_valid_13_digit_titles_test() ->
+    %% deliberate deviation: for a VALID 13-digit SP/MG title the
+    %% reference silently slices the first 12 digits, producing
+    %% '3476 3531 00 18' for input 3476353100183 (executed) — the
+    %% last digit is dropped and every group shifts, corrupting the
+    %% value. The port refuses instead of corrupting.
+    ?assert(brutils_voter_id:is_valid(<<"3476353100183">>)),
+    ?assertEqual({error, invalid},
+                 brutils_voter_id:format(<<"3476353100183">>)).
+
+format_invalid_voter_id_test() ->
+    ?assertEqual({error, invalid},
+                 brutils_voter_id:format(<<"690847092820">>)),   % bad vd2
+    ?assertEqual({error, invalid},
+                 brutils_voter_id:format(<<"34763531018">>)),    % 11 digits
+    ?assertEqual({error, invalid}, brutils_voter_id:format(<<>>)).
+
+format_non_binary_is_out_of_contract_test() ->
+    ?assertError(function_clause, brutils_voter_id:format(690847092828)),
+    ?assertError(function_clause, brutils_voter_id:format("690847092828")).
