@@ -10,5 +10,5 @@
     {modules, []},
     {licenses, ["MIT"]},
     {maintainers, ["Camilo Cunha de Azevedo <camilotk@gmail.com>"]},
-    {links, []}
+    {links, [{"GitHub", "https://github.com/brazilian-utils/erlang"}]}
  ]}.
