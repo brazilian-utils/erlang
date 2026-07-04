@@ -26,6 +26,11 @@
 %% Passport
 -export([is_valid_passport/1, format_passport/1, remove_symbols_passport/1,
          generate_passport/0]).
+%% License plate
+-export([is_valid_license_plate/1, is_valid_license_plate/2,
+         format_license_plate/1, remove_symbols_license_plate/1,
+         convert_license_plate_to_mercosul/1, get_format_license_plate/1,
+         generate_license_plate/0, generate_license_plate/1]).
 
 %%--------------------------------------------------------------------
 %% CPF
@@ -264,3 +269,65 @@ remove_symbols_passport(Passport) ->
 -spec generate_passport() -> brutils_passport:passport().
 generate_passport() ->
     brutils_passport:generate().
+
+%%--------------------------------------------------------------------
+%% License plate
+%%--------------------------------------------------------------------
+
+%% @doc Returns whether the given term is a valid license plate of
+%% either pattern (old format or Mercosul).
+%% @see brutils_license_plate:is_valid/1
+-spec is_valid_license_plate(term()) -> boolean().
+is_valid_license_plate(Plate) ->
+    brutils_license_plate:is_valid(Plate).
+
+%% @doc Returns whether the given term is a valid license plate of
+%% the given pattern (`old_format' or `mercosul').
+%% @see brutils_license_plate:is_valid/2
+-spec is_valid_license_plate(term(), brutils_license_plate:plate_type()) ->
+        boolean().
+is_valid_license_plate(Plate, Type) ->
+    brutils_license_plate:is_valid(Plate, Type).
+
+%% @doc Formats a valid license plate for display (old format gets a
+%% dash, Mercosul comes out bare; both uppercased).
+%% @see brutils_license_plate:format/1
+-spec format_license_plate(binary()) ->
+        {ok, brutils_license_plate:formatted_plate()} | {error, invalid}.
+format_license_plate(Plate) ->
+    brutils_license_plate:format(Plate).
+
+%% @doc Removes the dash (`-') from a license plate string.
+%% @see brutils_license_plate:remove_symbols/1
+-spec remove_symbols_license_plate(binary()) -> binary().
+remove_symbols_license_plate(Plate) ->
+    brutils_license_plate:remove_symbols(Plate).
+
+%% @doc Converts an old-format plate to the Mercosul pattern.
+%% @see brutils_license_plate:convert_to_mercosul/1
+-spec convert_license_plate_to_mercosul(binary()) ->
+        {ok, brutils_license_plate:plate()} | {error, invalid}.
+convert_license_plate_to_mercosul(Plate) ->
+    brutils_license_plate:convert_to_mercosul(Plate).
+
+%% @doc Detects the pattern of a license plate (`old_format' or
+%% `mercosul').
+%% @see brutils_license_plate:get_format/1
+-spec get_format_license_plate(binary()) ->
+        {ok, brutils_license_plate:plate_type()} | {error, invalid}.
+get_format_license_plate(Plate) ->
+    brutils_license_plate:get_format(Plate).
+
+%% @doc Generates a random valid Mercosul plate.
+%% @see brutils_license_plate:generate/0
+-spec generate_license_plate() -> {ok, brutils_license_plate:plate()}.
+generate_license_plate() ->
+    brutils_license_plate:generate().
+
+%% @doc Generates a random valid plate in the given pattern
+%% (`<<"LLLNNNN">>' or `<<"LLLNLNN">>').
+%% @see brutils_license_plate:generate/1
+-spec generate_license_plate(binary()) ->
+        {ok, brutils_license_plate:plate()} | {error, invalid}.
+generate_license_plate(Pattern) ->
+    brutils_license_plate:generate(Pattern).

@@ -188,3 +188,47 @@ generate_passport_test() ->
     Passport = brutils:generate_passport(),
     ?assertEqual(8, byte_size(Passport)),
     ?assert(brutils:is_valid_passport(Passport)).
+
+%%--------------------------------------------------------------------
+%% License plate
+%%--------------------------------------------------------------------
+
+is_valid_license_plate_test() ->
+    ?assert(brutils:is_valid_license_plate(<<"ABC1234">>)),
+    ?assert(brutils:is_valid_license_plate(<<"abc1d23">>)),
+    ?assertNot(brutils:is_valid_license_plate(<<"ABC-1234">>)),
+    ?assertNot(brutils:is_valid_license_plate(1234567)).
+
+is_valid_license_plate_typed_test() ->
+    ?assert(brutils:is_valid_license_plate(<<"ABC1234">>, old_format)),
+    ?assertNot(brutils:is_valid_license_plate(<<"ABC1234">>, mercosul)).
+
+format_license_plate_test() ->
+    ?assertEqual({ok, <<"ABC-1234">>},
+                 brutils:format_license_plate(<<"abc1234">>)),
+    ?assertEqual({error, invalid}, brutils:format_license_plate(<<"ABC123">>)).
+
+remove_symbols_license_plate_test() ->
+    ?assertEqual(<<"ABC123">>,
+                 brutils:remove_symbols_license_plate(<<"ABC-123">>)).
+
+convert_license_plate_to_mercosul_test() ->
+    %% the facade name matches the reference's export exactly
+    ?assertEqual({ok, <<"ABC4F67">>},
+                 brutils:convert_license_plate_to_mercosul(<<"ABC4567">>)),
+    ?assertEqual({error, invalid},
+                 brutils:convert_license_plate_to_mercosul(<<"ABC1D23">>)).
+
+get_format_license_plate_test() ->
+    ?assertEqual({ok, old_format},
+                 brutils:get_format_license_plate(<<"ABC1234">>)),
+    ?assertEqual({ok, mercosul},
+                 brutils:get_format_license_plate(<<"ABC1D23">>)).
+
+generate_license_plate_test() ->
+    {ok, Default} = brutils:generate_license_plate(),
+    ?assert(brutils:is_valid_license_plate(Default, mercosul)),
+    {ok, Old} = brutils:generate_license_plate(<<"LLLNNNN">>),
+    ?assert(brutils:is_valid_license_plate(Old, old_format)),
+    ?assertEqual({error, invalid},
+                 brutils:generate_license_plate(<<"XXXXXXX">>)).
