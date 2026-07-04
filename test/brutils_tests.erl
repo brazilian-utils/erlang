@@ -232,3 +232,29 @@ generate_license_plate_test() ->
     ?assert(brutils:is_valid_license_plate(Old, old_format)),
     ?assertEqual({error, invalid},
                  brutils:generate_license_plate(<<"XXXXXXX">>)).
+
+%%--------------------------------------------------------------------
+%% Voter ID
+%%--------------------------------------------------------------------
+
+is_valid_voter_id_test() ->
+    ?assert(brutils:is_valid_voter_id(<<"690847092828">>)),
+    ?assert(brutils:is_valid_voter_id(<<"3476353100183">>)),   % 13-digit SP
+    ?assertNot(brutils:is_valid_voter_id(<<"690847092820">>)),
+    ?assertNot(brutils:is_valid_voter_id(690847092828)).
+
+format_voter_id_test() ->
+    ?assertEqual({ok, <<"6908 4709 28 28">>},
+                 brutils:format_voter_id(<<"690847092828">>)),
+    %% the truncation deviation survives the facade: valid 13-digit
+    %% titles are refused, not corrupted
+    ?assertEqual({error, invalid},
+                 brutils:format_voter_id(<<"3476353100183">>)).
+
+generate_voter_id_test() ->
+    {ok, Default} = brutils:generate_voter_id(),
+    ?assert(brutils:is_valid_voter_id(Default)),
+    ?assertEqual(<<"28">>, binary:part(Default, 8, 2)),
+    {ok, Sp} = brutils:generate_voter_id(<<"SP">>),
+    ?assertEqual(<<"01">>, binary:part(Sp, 8, 2)),
+    ?assertEqual({error, invalid}, brutils:generate_voter_id(<<"XX">>)).

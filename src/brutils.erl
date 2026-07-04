@@ -31,6 +31,9 @@
          format_license_plate/1, remove_symbols_license_plate/1,
          convert_license_plate_to_mercosul/1, get_format_license_plate/1,
          generate_license_plate/0, generate_license_plate/1]).
+%% Voter ID
+-export([is_valid_voter_id/1, format_voter_id/1,
+         generate_voter_id/0, generate_voter_id/1]).
 
 %%--------------------------------------------------------------------
 %% CPF
@@ -331,3 +334,39 @@ generate_license_plate() ->
         {ok, brutils_license_plate:plate()} | {error, invalid}.
 generate_license_plate(Pattern) ->
     brutils_license_plate:generate(Pattern).
+
+%%--------------------------------------------------------------------
+%% Voter ID
+%%--------------------------------------------------------------------
+
+%% @doc Returns whether the given term is a valid voter id (título de
+%% eleitor); 12 digits, or 13 for some São Paulo / Minas Gerais
+%% titles.
+%% @see brutils_voter_id:is_valid/1
+-spec is_valid_voter_id(term()) -> boolean().
+is_valid_voter_id(VoterId) ->
+    brutils_voter_id:is_valid(VoterId).
+
+%% @doc Formats a valid 12-digit voter id for display
+%% (`<<"NNNN NNNN NN NN">>'); valid 13-digit titles are refused
+%% rather than truncated.
+%% @see brutils_voter_id:format/1
+-spec format_voter_id(binary()) ->
+        {ok, brutils_voter_id:formatted_voter_id()} | {error, invalid}.
+format_voter_id(VoterId) ->
+    brutils_voter_id:format(VoterId).
+
+%% @doc Generates a random valid voter id for a title issued abroad
+%% (federative union `ZZ').
+%% @see brutils_voter_id:generate/0
+-spec generate_voter_id() -> {ok, brutils_voter_id:voter_id()}.
+generate_voter_id() ->
+    brutils_voter_id:generate().
+
+%% @doc Generates a random valid voter id for the given federative
+%% union (two-letter code, case insensitive).
+%% @see brutils_voter_id:generate/1
+-spec generate_voter_id(binary()) ->
+        {ok, brutils_voter_id:voter_id()} | {error, invalid}.
+generate_voter_id(Uf) ->
+    brutils_voter_id:generate(Uf).
