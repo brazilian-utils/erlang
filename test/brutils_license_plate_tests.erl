@@ -129,3 +129,47 @@ get_format_composes_with_is_valid_test() ->
 
 get_format_non_binary_is_out_of_contract_test() ->
     ?assertError(function_clause, brutils_license_plate:get_format(1234567)).
+
+%%--------------------------------------------------------------------
+%% convert_to_mercosul/1
+%%--------------------------------------------------------------------
+
+convert_maps_each_digit_to_its_letter_test() ->
+    %% position 4 digit D becomes the letter $A + D; all ten pinned
+    %% from the executed reference
+    Expected = [{$0, $A}, {$1, $B}, {$2, $C}, {$3, $D}, {$4, $E},
+                {$5, $F}, {$6, $G}, {$7, $H}, {$8, $I}, {$9, $J}],
+    lists:foreach(
+      fun({D, L}) ->
+              ?assertEqual({ok, <<"ABC4", L, "67">>},
+                           brutils_license_plate:convert_to_mercosul(
+                             <<"ABC4", D, "67">>))
+      end,
+      Expected).
+
+convert_uppercases_lowercase_input_test() ->
+    ?assertEqual({ok, <<"ABC4F67">>},
+                 brutils_license_plate:convert_to_mercosul(<<"abc4567">>)).
+
+convert_rejects_mercosul_input_test() ->
+    %% already-converted plates are not old format — error, not a no-op
+    ?assertEqual({error, invalid},
+                 brutils_license_plate:convert_to_mercosul(<<"ABC1D23">>)).
+
+convert_rejects_invalid_input_test() ->
+    ?assertEqual({error, invalid},
+                 brutils_license_plate:convert_to_mercosul(<<"ABC4*67">>)),
+    ?assertEqual({error, invalid},
+                 brutils_license_plate:convert_to_mercosul(<<"ABC123">>)).
+
+convert_normalizes_padded_input_test() ->
+    %% deliberate deviation: for padded input the reference converts
+    %% the wrong position and keeps the spaces (' ABC4567 ' ->
+    %% ' ABCE567 ', executed) because it slices the unstripped
+    %% string; the port normalizes first and converts correctly
+    ?assertEqual({ok, <<"ABC4F67">>},
+                 brutils_license_plate:convert_to_mercosul(<<" ABC4567 ">>)).
+
+convert_non_binary_is_out_of_contract_test() ->
+    ?assertError(function_clause,
+                 brutils_license_plate:convert_to_mercosul(1234567)).

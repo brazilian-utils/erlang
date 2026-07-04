@@ -8,7 +8,8 @@
 %% All functions operate on UTF-8 binaries.
 -module(brutils_license_plate).
 
--export([remove_symbols/1, is_valid/1, is_valid/2, get_format/1]).
+-export([remove_symbols/1, is_valid/1, is_valid/2, get_format/1,
+         convert_to_mercosul/1]).
 
 -type plate_type() :: old_format | mercosul.
 %% The two plate patterns: `old_format' is `LLLNNNN', `mercosul' is
@@ -120,6 +121,33 @@ get_format(Plate) when is_binary(Plate) ->
         {true, _} -> {ok, old_format};
         {_, true} -> {ok, mercosul};
         _ -> {error, invalid}
+    end.
+
+%% @doc Converts an old-format plate (`LLLNNNN') to the Mercosul
+%% pattern (`LLLNLNN') by replacing the digit at position 5 with a
+%% letter: `0' becomes `A', `1' becomes `B', ... `9' becomes `J'.
+%%
+%% The input is normalized (trimmed, uppercased) first and must be a
+%% valid old-format plate — an already-Mercosul plate yields
+%% `{error, invalid}', not a no-op. (For whitespace-padded input the
+%% reference implementation converts the wrong position and keeps the
+%% padding, an artifact of slicing the unstripped string; this port
+%% deliberately normalizes first and converts correctly.)
+%%
+%% ```
+%% 1> brutils_license_plate:convert_to_mercosul(<<"abc4567">>).
+%% {ok,<<"ABC4F67">>}
+%% 2> brutils_license_plate:convert_to_mercosul(<<"ABC1D23">>).
+%% {error,invalid}
+%% '''
+-spec convert_to_mercosul(binary()) -> {ok, plate()} | {error, invalid}.
+convert_to_mercosul(Plate) when is_binary(Plate) ->
+    case is_valid(Plate, old_format) of
+        true ->
+            <<Head:4/binary, D, Tail:2/binary>> = normalize(Plate),
+            {ok, <<Head/binary, ($A + D - $0), Tail/binary>>};
+        false ->
+            {error, invalid}
     end.
 
 %%--------------------------------------------------------------------
