@@ -85,3 +85,47 @@ is_valid_unknown_type_is_out_of_contract_test() ->
                  brutils_license_plate:is_valid(<<"ABC1234">>, oldformat)),
     ?assertError(function_clause,
                  brutils_license_plate:is_valid(<<"ABC1234">>, "old_format")).
+
+%%--------------------------------------------------------------------
+%% get_format/1
+%%
+%% Returns plate_type() atoms — a documented divergence from the
+%% reference's pattern strings ("LLLNNNN"/"LLLNLNN"), so the result
+%% composes with is_valid/2.
+%%--------------------------------------------------------------------
+
+get_format_detects_old_format_test() ->
+    ?assertEqual({ok, old_format},
+                 brutils_license_plate:get_format(<<"ABC1234">>)),
+    ?assertEqual({ok, old_format},
+                 brutils_license_plate:get_format(<<"abc1234">>)).
+
+get_format_detects_mercosul_test() ->
+    ?assertEqual({ok, mercosul},
+                 brutils_license_plate:get_format(<<"ABC1D23">>)),
+    ?assertEqual({ok, mercosul},
+                 brutils_license_plate:get_format(<<"abc1d23">>)).
+
+get_format_trims_like_the_validators_test() ->
+    ?assertEqual({ok, old_format},
+                 brutils_license_plate:get_format(<<" abc1234 ">>)).
+
+get_format_rejects_invalid_plates_test() ->
+    %% the reference docstring's own example "abc123" (6 chars) is
+    %% invalid — executed: the code returns None for it
+    ?assertEqual({error, invalid},
+                 brutils_license_plate:get_format(<<"abc123">>)),
+    ?assertEqual({error, invalid},
+                 brutils_license_plate:get_format(<<"ABCD123">>)),
+    ?assertEqual({error, invalid},
+                 brutils_license_plate:get_format(<<"ABC-1234">>)).
+
+get_format_composes_with_is_valid_test() ->
+    %% the point of the atoms: the detected type validates the plate
+    {ok, T1} = brutils_license_plate:get_format(<<"ABC1234">>),
+    ?assert(brutils_license_plate:is_valid(<<"ABC1234">>, T1)),
+    {ok, T2} = brutils_license_plate:get_format(<<"ABC1D23">>),
+    ?assert(brutils_license_plate:is_valid(<<"ABC1D23">>, T2)).
+
+get_format_non_binary_is_out_of_contract_test() ->
+    ?assertError(function_clause, brutils_license_plate:get_format(1234567)).

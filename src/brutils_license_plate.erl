@@ -8,7 +8,7 @@
 %% All functions operate on UTF-8 binaries.
 -module(brutils_license_plate).
 
--export([remove_symbols/1, is_valid/1, is_valid/2]).
+-export([remove_symbols/1, is_valid/1, is_valid/2, get_format/1]).
 
 -type plate_type() :: old_format | mercosul.
 %% The two plate patterns: `old_format' is `LLLNNNN', `mercosul' is
@@ -96,6 +96,31 @@ is_valid(Plate, mercosul) when is_binary(Plate) ->
     end;
 is_valid(_, mercosul) ->
     false.
+
+%% @doc Detects the pattern of a license plate: `{ok, old_format}'
+%% for `LLLNNNN', `{ok, mercosul}' for `LLLNLNN', or
+%% `{error, invalid}' when the input matches neither.
+%%
+%% Trimming and case rules are those of {@link is_valid/1}. The
+%% result composes with {@link is_valid/2}: a detected type always
+%% validates the plate it was detected from. (The reference
+%% implementation returns the pattern strings `"LLLNNNN"' /
+%% `"LLLNLNN"' instead — this port deliberately returns the
+%% `plate_type()' atoms.)
+%%
+%% ```
+%% 1> brutils_license_plate:get_format(<<"abc1234">>).
+%% {ok,old_format}
+%% 2> brutils_license_plate:get_format(<<"ABC1D23">>).
+%% {ok,mercosul}
+%% '''
+-spec get_format(binary()) -> {ok, plate_type()} | {error, invalid}.
+get_format(Plate) when is_binary(Plate) ->
+    case {is_valid(Plate, old_format), is_valid(Plate, mercosul)} of
+        {true, _} -> {ok, old_format};
+        {_, true} -> {ok, mercosul};
+        _ -> {error, invalid}
+    end.
 
 %%--------------------------------------------------------------------
 %% Internal
