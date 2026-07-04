@@ -10,6 +10,8 @@
 
 ## Build
 
+Requires Erlang/OTP 25 or newer (tested on OTP 25, 26 and 27).
+
 ```sh
 rebar3 compile
 ```
