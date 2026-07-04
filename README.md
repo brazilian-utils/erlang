@@ -78,6 +78,10 @@ domain module directly.
   - [convert_license_plate_to_mercosul](#convert_license_plate_to_mercosul)
   - [get_format_license_plate](#get_format_license_plate)
   - [generate_license_plate](#generate_license_plate)
+- [Voter ID](#voter-id)
+  - [is_valid_voter_id](#is_valid_voter_id)
+  - [format_voter_id](#format_voter_id)
+  - [generate_voter_id](#generate_voter_id)
 
 ## CPF
 
@@ -904,6 +908,95 @@ Example:
 {ok,<<"WMF1O31">>}
 2> brutils:generate_license_plate(<<"LLLNNNN">>).
 {ok,<<"BFX5517">>}
+```
+
+## Voter ID
+
+A Brazilian voter id (título de eleitor) is read from the right:
+
+| Field | Digits | Position |
+|---|---|---|
+| sequential number | 8 (or 9 for some SP/MG titles) | leading |
+| federative union | 2 | before the check digits |
+| check digits | 2 | last |
+
+Titles normally have 12 digits; São Paulo and Minas Gerais titles may have
+13 (an extra sequential digit that the checksum ignores). Federative-union
+codes run `01` (SP) through `27` (TO), with `28` (`ZZ`) for titles issued
+abroad.
+
+### is_valid_voter_id
+
+Returns whether the given voter id is valid: correct length for its
+federative union, code in range, and both verifying check digits matching.
+This function does not verify the existence of the title; it only validates
+the format of the string.
+
+Args:
+
+- `VoterId` (`term()`): the voter id to be validated, a 12- or 13-digit
+  binary. Any non-binary term returns `false` — the function never raises.
+
+Returns:
+
+- `boolean()`: `true` if the title is structurally valid, `false`
+  otherwise.
+
+Example:
+
+```erlang
+1> brutils:is_valid_voter_id(<<"690847092828">>).
+true
+2> brutils:is_valid_voter_id(<<"690847092820">>).
+false
+3> brutils:is_valid_voter_id(<<"3476353100183">>).
+true
+```
+
+### format_voter_id
+
+Formats a valid 12-digit voter id for display with visual spacing
+(`NNNN NNNN NN NN`). Valid 13-digit SP/MG titles yield `{error, invalid}`:
+the display mask has no slot for their extra digit, so they are refused
+rather than silently truncated.
+
+Args:
+
+- `VoterId` (`binary()`): a numbers-only 12-digit voter id.
+
+Returns:
+
+- `{ok, Formatted}` with the spaced voter id, or `{error, invalid}`.
+
+Example:
+
+```erlang
+1> brutils:format_voter_id(<<"690847092828">>).
+{ok,<<"6908 4709 28 28">>}
+2> brutils:format_voter_id(<<"3476353100183">>).
+{error,invalid}
+```
+
+### generate_voter_id
+
+Generates a random valid 12-digit voter id — for a title issued abroad
+(`ZZ`) with no argument, or for the given federative union (two-letter
+code, case insensitive).
+
+Returns:
+
+- `{ok, VoterId}` with the generated title; the UF form yields
+  `{error, invalid}` for unknown codes.
+
+Example:
+
+```erlang
+1> brutils:generate_voter_id().
+{ok,<<"469000172810">>}
+2> brutils:generate_voter_id(<<"sp">>).
+{ok,<<"569431460183">>}
+3> brutils:generate_voter_id(<<"XX">>).
+{error,invalid}
 ```
 
 ## Author
