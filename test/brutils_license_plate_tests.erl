@@ -173,3 +173,37 @@ convert_normalizes_padded_input_test() ->
 convert_non_binary_is_out_of_contract_test() ->
     ?assertError(function_clause,
                  brutils_license_plate:convert_to_mercosul(1234567)).
+
+%%--------------------------------------------------------------------
+%% format/1
+%%--------------------------------------------------------------------
+
+format_old_format_gets_dash_test() ->
+    ?assertEqual({ok, <<"ABC-1234">>},
+                 brutils_license_plate:format(<<"ABC1234">>)),
+    ?assertEqual({ok, <<"ABC-1234">>},
+                 brutils_license_plate:format(<<"abc1234">>)).
+
+format_mercosul_is_bare_uppercase_test() ->
+    ?assertEqual({ok, <<"ABC1E34">>},
+                 brutils_license_plate:format(<<"abc1e34">>)),
+    ?assertEqual({ok, <<"ABC1D23">>},
+                 brutils_license_plate:format(<<"ABC1D23">>)).
+
+format_normalizes_padded_input_test() ->
+    %% deliberate deviation: the reference returns ' AB-C1234 ' for
+    %% padded input (executed) — dash misplaced, spaces kept — because
+    %% it slices the unstripped string; the port normalizes first
+    ?assertEqual({ok, <<"ABC-1234">>},
+                 brutils_license_plate:format(<<" abc1234 ">>)).
+
+format_invalid_plate_test() ->
+    ?assertEqual({error, invalid},
+                 brutils_license_plate:format(<<"ABC123">>)),
+    ?assertEqual({error, invalid},
+                 brutils_license_plate:format(<<"ABCD123">>)),
+    ?assertEqual({error, invalid}, brutils_license_plate:format(<<>>)).
+
+format_non_binary_is_out_of_contract_test() ->
+    ?assertError(function_clause, brutils_license_plate:format(1234567)),
+    ?assertError(function_clause, brutils_license_plate:format("ABC1234")).

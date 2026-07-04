@@ -9,7 +9,7 @@
 -module(brutils_license_plate).
 
 -export([remove_symbols/1, is_valid/1, is_valid/2, get_format/1,
-         convert_to_mercosul/1]).
+         convert_to_mercosul/1, format/1]).
 
 -type plate_type() :: old_format | mercosul.
 %% The two plate patterns: `old_format' is `LLLNNNN', `mercosul' is
@@ -147,6 +147,34 @@ convert_to_mercosul(Plate) when is_binary(Plate) ->
             <<Head:4/binary, D, Tail:2/binary>> = normalize(Plate),
             {ok, <<Head/binary, ($A + D - $0), Tail/binary>>};
         false ->
+            {error, invalid}
+    end.
+
+%% @doc Formats a valid license plate for display: old-format plates
+%% get a dash after the letters (`<<"ABC-1234">>'), Mercosul plates
+%% come out bare — both uppercased.
+%%
+%% The input is normalized (trimmed, uppercased) first. (For
+%% whitespace-padded input the reference implementation emits a
+%% mangled result — dash misplaced, padding kept — an artifact of
+%% slicing the unstripped string; this port deliberately normalizes
+%% first.)
+%%
+%% ```
+%% 1> brutils_license_plate:format(<<"abc1234">>).
+%% {ok,<<"ABC-1234">>}
+%% 2> brutils_license_plate:format(<<"abc1e34">>).
+%% {ok,<<"ABC1E34">>}
+%% '''
+-spec format(binary()) -> {ok, formatted_plate()} | {error, invalid}.
+format(Plate) when is_binary(Plate) ->
+    case get_format(Plate) of
+        {ok, old_format} ->
+            <<Letters:3/binary, Digits:4/binary>> = normalize(Plate),
+            {ok, <<Letters/binary, $-, Digits/binary>>};
+        {ok, mercosul} ->
+            {ok, normalize(Plate)};
+        {error, invalid} ->
             {error, invalid}
     end.
 
