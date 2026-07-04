@@ -39,3 +39,84 @@ is_valid_rejects_out_of_range_federative_union_test() ->
     %% what rejects them
     ?assertNot(brutils_voter_id:is_valid(<<"123456780094">>)),   % FU 00
     ?assertNot(brutils_voter_id:is_valid(<<"123456782992">>)).   % FU 29
+
+%%--------------------------------------------------------------------
+%% is_valid/1 — check digits
+%%--------------------------------------------------------------------
+
+%% One reference-generated fixture per federative union, 01..28.
+uf_fixtures() ->
+    [<<"347635310183">>, <<"390248360230">>, <<"919737700361">>,
+     <<"918159200426">>, <<"249274760507">>, <<"875112640612">>,
+     <<"309450520779">>, <<"894139120868">>, <<"197514690930">>,
+     <<"302208571074">>, <<"860278141104">>, <<"985189801201">>,
+     <<"251489351333">>, <<"174768961465">>, <<"095062211511">>,
+     <<"713118581600">>, <<"287101821775">>, <<"999508911813">>,
+     <<"395481601902">>, <<"040230392020">>, <<"579257312127">>,
+     <<"169512522259">>, <<"918265102305">>, <<"816583532461">>,
+     <<"019370822526">>, <<"370221952682">>, <<"196911262755">>,
+     <<"114018942844">>].
+
+is_valid_accepts_one_fixture_per_uf_test() ->
+    ?assert(brutils_voter_id:is_valid(<<"690847092828">>)),   % spec anchor
+    lists:foreach(fun(V) -> ?assert(brutils_voter_id:is_valid(V)) end,
+                  uf_fixtures()).
+
+vd1_rem_zero_sp_maps_to_one_test() ->
+    %% weighted sum rem 11 =:= 0 with FU 01: vd1 becomes 1, not 0
+    ?assert(brutils_voter_id:is_valid(<<"756048060116">>)).
+
+vd1_rem_zero_elsewhere_stays_zero_test() ->
+    %% same sequential, FU 05 (BA): the rule is CONDITIONAL — vd1
+    %% stays 0
+    ?assert(brutils_voter_id:is_valid(<<"756048060507">>)).
+
+vd1_rem_ten_maps_to_zero_test() ->
+    ?assert(brutils_voter_id:is_valid(<<"840905360108">>)).
+
+vd2_rem_zero_sp_maps_to_one_test() ->
+    ?assert(brutils_voter_id:is_valid(<<"146881970141">>)).
+
+vd2_rem_ten_maps_to_zero_test() ->
+    ?assert(brutils_voter_id:is_valid(<<"146881970540">>)).
+
+is_valid_accepts_13_digit_sp_and_ignores_digit_9_test() ->
+    %% same SP title, two different inserted 9th digits, both valid —
+    %% the checksum reads only the first 8 sequential digits
+    ?assert(brutils_voter_id:is_valid(<<"3476353100183">>)),
+    ?assert(brutils_voter_id:is_valid(<<"3476353190183">>)).
+
+is_valid_rejects_repeated_digits_test() ->
+    %% no reservation rule exists — all ten fail on checksum alone,
+    %% pinned from the executed reference
+    lists:foreach(
+      fun(D) ->
+              ?assertNot(brutils_voter_id:is_valid(binary:copy(<<D>>, 12)))
+      end,
+      lists:seq($0, $9)).
+
+is_valid_rejects_bad_vd2_test() ->
+    Base = <<"34763531018">>,
+    lists:foreach(
+      fun(D) when D =:= $3 -> ok;
+         (D) -> ?assertNot(brutils_voter_id:is_valid(<<Base/binary, D>>))
+      end,
+      lists:seq($0, $9)).
+
+is_valid_rejects_bad_vd1_test() ->
+    lists:foreach(
+      fun(D) when D =:= $8 -> ok;
+         (D) ->
+              V = <<"3476353101", D, "3">>,
+              ?assertNot(brutils_voter_id:is_valid(V))
+      end,
+      lists:seq($0, $9)).
+
+fu_swap_can_coincide_test() ->
+    %% counterexample evidence, executed: swapping the FU of a valid
+    %% title CAN coincidentally produce matching check digits — these
+    %% two FU-swapped variants of the SP fixture are genuinely valid.
+    %% (This is why no fu-corruption property exists in the proper
+    %% suite.)
+    ?assert(brutils_voter_id:is_valid(<<"347635311783">>)),   % FU 17
+    ?assert(brutils_voter_id:is_valid(<<"347635312283">>)).   % FU 22

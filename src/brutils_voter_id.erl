@@ -22,13 +22,24 @@
 
 -export_type([voter_id/0, formatted_voter_id/0]).
 
-%% @doc Returns whether the given term has the shape of a valid voter
-%% id: an all-digit binary of 12 digits — or 13 when the federative
-%% union code (the two digits before the final two) is `01' or `02' —
-%% whose federative union code is in the range `01'..`28'.
+%% @doc Returns whether the given term is a valid voter id: an
+%% all-digit binary of 12 digits — or 13 when the federative union
+%% code (the two digits before the final two) is `01' or `02' —
+%% whose federative union code is in the range `01'..`28' and whose
+%% two check digits match the ones computed from the first 8
+%% sequential digits and the federative union.
 %%
-%% The function is total: any non-binary term returns `false' rather
-%% than raising.
+%% The 9th sequential digit of a 13-digit title is ignored by the
+%% checksum. Only the format is verified — the title is not checked
+%% for existence. The function is total: any non-binary term returns
+%% `false' rather than raising.
+%%
+%% ```
+%% 1> brutils_voter_id:is_valid(<<"690847092828">>).
+%% true
+%% 2> brutils_voter_id:is_valid(<<"690847092820">>).
+%% false
+%% '''
 -spec is_valid(term()) -> boolean().
 is_valid(VoterId) when is_binary(VoterId),
                        byte_size(VoterId) =:= 12;
@@ -36,7 +47,8 @@ is_valid(VoterId) when is_binary(VoterId),
                        byte_size(VoterId) =:= 13 ->
     all_digits(VoterId)
         andalso length_allowed(VoterId)
-        andalso fu_in_range(fu(VoterId));
+        andalso fu_in_range(fu(VoterId))
+        andalso checksum_ok(VoterId);
 is_valid(_) ->
     false.
 
@@ -68,3 +80,47 @@ fu_in_range(Fu) ->
 all_digits(<<C, Rest/binary>>) when C >= $0, C =< $9 -> all_digits(Rest);
 all_digits(<<>>) -> true;
 all_digits(_) -> false.
+
+%% Both check digits (the last two bytes) match the ones computed
+%% from the first 8 sequential digits and the federative union. The
+%% second digit is computed from the FIRST — a corrupted vd1 usually
+%% breaks vd2 too.
+-spec checksum_ok(binary()) -> boolean().
+checksum_ok(VoterId) ->
+    <<Seq8:8/binary, _/binary>> = VoterId,
+    Fu = fu(VoterId),
+    Size = byte_size(VoterId),
+    V1 = binary:at(VoterId, Size - 2) - $0,
+    V2 = binary:at(VoterId, Size - 1) - $0,
+    Vd1 = vd1(Seq8, Fu),
+    Vd1 =:= V1 andalso vd2(Fu, Vd1) =:= V2.
+
+%% First check digit: weighted sum of the first 8 sequential digits
+%% (weights 2..9), rem 11, then — in this order — a remainder of 0
+%% becomes 1 for São Paulo and Minas Gerais, and a remainder of 10
+%% becomes 0.
+-spec vd1(<<_:64>>, binary()) -> 0..9.
+vd1(Seq8, Fu) ->
+    Sum = weighted_sum(Seq8, 2, 0),
+    edge_rules(Sum rem 11, Fu).
+
+%% Second check digit: the two federative-union digits weighted 7 and
+%% 8 plus the first check digit weighted 9, rem 11, same edge rules.
+-spec vd2(binary(), 0..9) -> 0..9.
+vd2(<<F1, F2>>, Vd1) ->
+    Sum = (F1 - $0) * 7 + (F2 - $0) * 8 + Vd1 * 9,
+    edge_rules(Sum rem 11, <<F1, F2>>).
+
+%% The two overlapping remainder rules, order significant.
+-spec edge_rules(0..10, binary()) -> 0..9.
+edge_rules(0, <<"01">>) -> 1;
+edge_rules(0, <<"02">>) -> 1;
+edge_rules(10, _Fu) -> 0;
+edge_rules(R, _Fu) -> R.
+
+-spec weighted_sum(binary(), pos_integer(), non_neg_integer()) ->
+        non_neg_integer().
+weighted_sum(<<C, Rest/binary>>, Weight, Acc) ->
+    weighted_sum(Rest, Weight + 1, Acc + (C - $0) * Weight);
+weighted_sum(<<>>, _Weight, Acc) ->
+    Acc.
