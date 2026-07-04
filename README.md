@@ -2,41 +2,69 @@
 
 <div align="center">
 
-<p>Utils library for Brazilian-specific businesses.</p>
+<p>Biblioteca de utilitarios projetada para validar, gerar e manipular dados de acordo com as particularidades do Brasil.</p>
 
-<p><strong>Erlang</strong>
+[![GitHub License](https://img.shields.io/github/license/brazilian-utils/erlang?color=blue)](https://opensource.org/license/mit)
+[![Package version](https://img.shields.io/hexpm/v/brutils)](https://hex.pm/packages/brutils)
+[![run-tests](https://github.com/brazilian-utils/erlang/actions/workflows/run-tests.yml/badge.svg)](https://github.com/brazilian-utils/erlang/actions/workflows/run-tests.yml)
+[![check-static](https://github.com/brazilian-utils/erlang/actions/workflows/check-static.yml/badge.svg)](https://github.com/brazilian-utils/erlang/actions/workflows/check-static.yml)
+
+### [Looking for the english version?](README_EN.md)
 
 </div>
 
-## Build
+# Introducao
 
-Requires Erlang/OTP 25 or newer (tested on OTP 25, 26 and 27).
+Brazilian Utils e uma biblioteca com foco na resolucao de problemas que enfrentamos diariamente no
+desenvolvimento de aplicacoes para o business brasileiro.
+
+- [Instalacao](#instalacao)
+- [Build](#build)
+- [Utilizacao](#utilizacao)
+- [Utilitarios](#utilitarios)
+- [Novos Utilitarios e Reportar Bugs](#novos-utilitarios-e-reportar-bugs)
+- [Duvidas? Ideias?](#duvidas-ideias)
+- [Contribuindo com o Codigo do Projeto](#contribuindo-com-o-codigo-do-projeto)
+
+# Instalacao
+
+Adicione `brutils` ao seu `rebar.config`:
+
+```erlang
+{deps, [
+  {brutils, "0.1.0"}
+]}.
+```
+
+# Build
+
+Requer Erlang/OTP 25 ou superior (testado nas versoes 25, 26 e 27).
 
 ```sh
 rebar3 compile
 ```
 
-Generate the API documentation with:
+Gere a documentacao da API com:
 
 ```sh
 rebar3 edoc
 ```
 
-# Usage
+# Utilizacao
 
-All functions are available through the `brutils` facade module and operate on
-UTF-8 binaries:
+Todas as funcoes estao disponiveis atraves do modulo fachada `brutils` e operam sobre
+binarios UTF-8:
 
 ```erlang
 1> brutils:is_valid_cpf(<<"82178537464">>).
 true
 ```
 
-Each utility also lives in its own module (`brutils_cpf`, ...) with the
-unsuffixed names (`brutils_cpf:is_valid/1`), if you prefer to depend on the
-domain module directly.
+Cada utilitario tambem existe em seu proprio modulo (`brutils_cpf`, ...) com os
+nomes sem sufixo (`brutils_cpf:is_valid/1`), caso voce prefira depender diretamente
+do modulo de dominio.
 
-# Utilities
+# Utilitarios
 
 - [CPF](#cpf)
   - [is_valid_cpf](#is_valid_cpf)
@@ -62,25 +90,25 @@ domain module directly.
   - [format_cep](#format_cep)
   - [remove_symbols_cep](#remove_symbols_cep)
   - [generate_cep](#generate_cep)
-- [Phone](#phone)
+- [Telefone](#telefone)
   - [is_valid_phone](#is_valid_phone)
   - [format_phone](#format_phone)
   - [remove_symbols_phone](#remove_symbols_phone)
   - [remove_international_dialing_code](#remove_international_dialing_code)
   - [generate_phone](#generate_phone)
-- [Passport](#passport)
+- [Passaporte](#passaporte)
   - [is_valid_passport](#is_valid_passport)
   - [format_passport](#format_passport)
   - [remove_symbols_passport](#remove_symbols_passport)
   - [generate_passport](#generate_passport)
-- [License plate](#license-plate)
+- [Placa de Veiculo](#placa-de-veiculo)
   - [is_valid_license_plate](#is_valid_license_plate)
   - [format_license_plate](#format_license_plate)
   - [remove_symbols_license_plate](#remove_symbols_license_plate)
   - [convert_license_plate_to_mercosul](#convert_license_plate_to_mercosul)
   - [get_format_license_plate](#get_format_license_plate)
   - [generate_license_plate](#generate_license_plate)
-- [Voter ID](#voter-id)
+- [Titulo de Eleitor](#titulo-de-eleitor)
   - [is_valid_voter_id](#is_valid_voter_id)
   - [format_voter_id](#format_voter_id)
   - [generate_voter_id](#generate_voter_id)
@@ -89,22 +117,21 @@ domain module directly.
 
 ### is_valid_cpf
 
-Returns whether the verifying checksum digits of the given CPF (Brazilian
-Individual Taxpayer Number) match its base number. This function does not
-verify the existence of the CPF; it only validates the format of the string.
+Retorna se os digitos verificadores do CPF fornecido correspondem ao seu numero base.
+Esta funcao nao verifica a existencia do CPF; ela apenas valida o formato da string.
 
-Args:
+Argumentos:
 
-- `Cpf` (`term()`): the CPF to be validated, an 11-digit binary. Any other
-  term returns `false` — the function never raises.
+- `Cpf` (`term()`): o CPF a ser validado, um binario de 11 digitos. Qualquer
+  outro termo retorna `false` e a funcao nunca gera excecao.
 
-Returns:
+Retorna:
 
-- `boolean()`: `true` if the checksum digits match the base number, `false`
-  otherwise. Formatting symbols are not stripped, so a formatted CPF must be
-  cleaned with `remove_symbols_cpf/1` first.
+- `boolean()`: `true` se os digitos verificadores corresponderem ao numero base,
+  `false` caso contrario. Os simbolos de formatacao nao sao removidos, entao um
+  CPF formatado deve ser limpo com `remove_symbols_cpf/1` antes.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:is_valid_cpf(<<"82178537464">>).
@@ -115,19 +142,19 @@ false
 
 ### format_cpf
 
-Formats a valid CPF for display, adding the standard visual aid symbols
+Formata um CPF valido para exibicao, adicionando os simbolos visuais padrao
 (`XXX.XXX.XXX-XX`).
 
-Args:
+Argumentos:
 
-- `Cpf` (`binary()`): a numbers-only CPF binary.
+- `Cpf` (`binary()`): um binario de CPF contendo apenas numeros.
 
-Returns:
+Retorna:
 
-- `{ok, Formatted}` with the formatted CPF, or `{error, invalid}` if the
-  input is not a valid CPF.
+- `{ok, Formatted}` com o CPF formatado, ou `{error, invalid}` se a entrada
+  nao for um CPF valido.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:format_cpf(<<"82178537464">>).
@@ -138,18 +165,18 @@ Example:
 
 ### remove_symbols_cpf
 
-Removes the formatting symbols `.` and `-` from a CPF string. Only those two
-characters are removed; anything else is kept unchanged.
+Remove os simbolos `.` e `-` de uma string de CPF. Apenas esses dois caracteres
+sao removidos; qualquer outro e preservado.
 
-Args:
+Argumentos:
 
-- `Cpf` (`binary()`): the CPF binary containing symbols to be removed.
+- `Cpf` (`binary()`): o binario de CPF contendo simbolos a serem removidos.
 
-Returns:
+Retorna:
 
-- `binary()`: a new binary with the specified symbols removed.
+- `binary()`: um novo binario com os simbolos especificados removidos.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:remove_symbols_cpf(<<"000.111.222-33">>).
@@ -158,13 +185,13 @@ Example:
 
 ### generate_cpf
 
-Generates a random valid CPF as a numbers-only binary.
+Gera um CPF valido aleatorio como binario contendo apenas numeros.
 
-Returns:
+Retorna:
 
-- `binary()`: a random valid 11-digit CPF.
+- `binary()`: um CPF valido aleatorio de 11 digitos.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:generate_cpf().
@@ -177,24 +204,23 @@ Example:
 
 ### is_valid_cnpj
 
-Returns whether the verifying checksum digits of the given CNPJ (Brazilian
-Company Registration Number) match its base number. Both the numeric format
-and the 2026 alphanumeric format (digits and uppercase letters in the first
-12 characters) are supported. This function does not verify the existence of
-the CNPJ; it only validates the format of the string.
+Retorna se os digitos verificadores do CNPJ fornecido correspondem ao seu numero base.
+Tanto o formato numerico quanto o formato alfanumerico de 2026 (digitos e letras
+maiuculas nos 12 primeiros caracteres) sao suportados. Esta funcao nao verifica a
+existencia do CNPJ; ela apenas valida o formato da string.
 
-Args:
+Argumentos:
 
-- `Cnpj` (`term()`): the CNPJ to be validated, a 14-character binary. Any
-  other term returns `false` — the function never raises.
+- `Cnpj` (`term()`): o CNPJ a ser validado, um binario de 14 caracteres.
+  Qualquer outro termo retorna `false` e a funcao nunca gera excecao.
 
-Returns:
+Retorna:
 
-- `boolean()`: `true` if the checksum digits match the base number, `false`
-  otherwise. Lowercase letters are invalid, and formatting symbols are not
-  stripped — clean the input with `remove_symbols_cnpj/1` first.
+- `boolean()`: `true` se os digitos verificadores corresponderem ao numero base,
+  `false` caso contrario. Letras minusculas sao invalidas, e os simbolos de
+  formatacao nao sao removidos. Limpe a entrada com `remove_symbols_cnpj/1` antes.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:is_valid_cnpj(<<"03560714000142">>).
@@ -207,19 +233,19 @@ true
 
 ### format_cnpj
 
-Formats a valid CNPJ for display, adding the standard visual aid symbols
+Formata um CNPJ valido para exibicao, adicionando os simbolos visuais padrao
 (`XX.XXX.XXX/XXXX-XX`).
 
-Args:
+Argumentos:
 
-- `Cnpj` (`binary()`): a symbols-free CNPJ binary, numeric or alphanumeric.
+- `Cnpj` (`binary()`): um binario de CNPJ sem simbolos, numerico ou alfanumerico.
 
-Returns:
+Retorna:
 
-- `{ok, Formatted}` with the formatted CNPJ, or `{error, invalid}` if the
-  input is not a valid CNPJ.
+- `{ok, Formatted}` com o CNPJ formatado, ou `{error, invalid}` se a entrada
+  nao for um CNPJ valido.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:format_cnpj(<<"03560714000142">>).
@@ -230,18 +256,18 @@ Example:
 
 ### remove_symbols_cnpj
 
-Removes the formatting symbols `.`, `/` and `-` from a CNPJ string. Only
-those three characters are removed; anything else is kept unchanged.
+Remove os simbolos `.`, `/` e `-` de uma string de CNPJ. Apenas esses tres
+caracteres sao removidos; qualquer outro e preservado.
 
-Args:
+Argumentos:
 
-- `Cnpj` (`binary()`): the CNPJ binary containing symbols to be removed.
+- `Cnpj` (`binary()`): o binario de CNPJ contendo simbolos a serem removidos.
 
-Returns:
+Retorna:
 
-- `binary()`: a new binary with the specified symbols removed.
+- `binary()`: um novo binario com os simbolos especificados removidos.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:remove_symbols_cnpj(<<"03.560.714/0001-42">>).
@@ -250,17 +276,16 @@ Example:
 
 ### generate_cnpj
 
-Generates a random valid CNPJ. An optional branch number can be given
-(non-negative integer or digits-only binary; defaults to 1), and an optional
-alphanumeric flag switches to the 2026 alphanumeric format, where the branch
-may also contain uppercase letters and invalid branches are replaced by
-`0001`.
+Gera um CNPJ valido aleatorio. Um numero de filial opcional pode ser informado
+(inteiro nao negativo ou binario contendo apenas digitos; o padrao e 1), e uma
+flag opcional permite usar o formato alfanumerico de 2026, em que a filial tambem
+pode conter letras maiusculas e filiais invalidas sao substituidas por `0001`.
 
-Returns:
+Retorna:
 
-- `binary()`: a random valid 14-character CNPJ.
+- `binary()`: um CNPJ valido aleatorio de 14 caracteres.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:generate_cnpj().
@@ -275,25 +300,23 @@ Example:
 
 ### is_valid_pis
 
-Returns whether the verifying check digit of the given PIS/PASEP (Brazilian
-social integration program number) matches its base number. This function
-does not verify the existence of the PIS; it only validates the format of
-the string.
+Retorna se o digito verificador do PIS/PASEP fornecido corresponde ao seu numero base.
+Esta funcao nao verifica a existencia do PIS; ela apenas valida o formato da string.
 
-Args:
+Argumentos:
 
-- `Pis` (`term()`): the PIS to be validated, an 11-digit binary. Any other
-  term returns `false` — the function never raises.
+- `Pis` (`term()`): o PIS a ser validado, um binario de 11 digitos. Qualquer
+  outro termo retorna `false` e a funcao nunca gera excecao.
 
-Returns:
+Retorna:
 
-- `boolean()`: `true` if the check digit matches the base number, `false`
-  otherwise. PIS reserves no repeated-digit sequences — notably,
-  `<<"00000000000">>` has a matching check digit and is valid. Formatting
-  symbols are not stripped — clean the input with `remove_symbols_pis/1`
-  first.
+- `boolean()`: `true` se o digito verificador corresponder ao numero base,
+  `false` caso contrario. O PIS nao reserva sequencias de digitos repetidos,
+  entao `<<"00000000000">>` possui digito verificador compativel e e valido.
+  Os simbolos de formatacao nao sao removidos; limpe a entrada com
+  `remove_symbols_pis/1` antes.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:is_valid_pis(<<"12056798818">>).
@@ -306,19 +329,19 @@ true
 
 ### format_pis
 
-Formats a valid PIS for display, adding the standard visual aid symbols
+Formata um PIS valido para exibicao, adicionando os simbolos visuais padrao
 (`NNN.NNNNN.NN-N`).
 
-Args:
+Argumentos:
 
-- `Pis` (`binary()`): a numbers-only PIS binary.
+- `Pis` (`binary()`): um binario de PIS contendo apenas numeros.
 
-Returns:
+Retorna:
 
-- `{ok, Formatted}` with the formatted PIS, or `{error, invalid}` if the
-  input is not a valid PIS.
+- `{ok, Formatted}` com o PIS formatado, ou `{error, invalid}` se a entrada
+  nao for um PIS valido.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:format_pis(<<"12056798818">>).
@@ -329,18 +352,18 @@ Example:
 
 ### remove_symbols_pis
 
-Removes the formatting symbols `.` and `-` from a PIS string. Only those two
-characters are removed; anything else is kept unchanged.
+Remove os simbolos `.` e `-` de uma string de PIS. Apenas esses dois caracteres
+sao removidos; qualquer outro e preservado.
 
-Args:
+Argumentos:
 
-- `Pis` (`binary()`): the PIS binary containing symbols to be removed.
+- `Pis` (`binary()`): o binario de PIS contendo simbolos a serem removidos.
 
-Returns:
+Retorna:
 
-- `binary()`: a new binary with the specified symbols removed.
+- `binary()`: um novo binario com os simbolos especificados removidos.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:remove_symbols_pis(<<"120.56798.81-8">>).
@@ -349,14 +372,14 @@ Example:
 
 ### generate_pis
 
-Generates a random valid PIS as a numbers-only binary. The base is drawn
-uniformly with zero included, so results may start with zeros.
+Gera um PIS valido aleatorio como binario contendo apenas numeros. A base e sorteada
+uniformemente com zero incluido, entao os resultados podem comecar com zero.
 
-Returns:
+Retorna:
 
-- `binary()`: a random valid 11-digit PIS.
+- `binary()`: um PIS valido aleatorio de 11 digitos.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:generate_pis().
@@ -369,27 +392,27 @@ Example:
 
 ### is_valid_cnh
 
-Returns whether the given CNH (Brazilian driver's license registration
-number, 2022 layout) is valid: after stripping every non-digit character,
-exactly 11 digits must remain and both verifying check digits must match the
-base number. Earlier CNH layouts are not supported. This function does not
-verify the existence of the CNH; it only validates the format of the string.
+Retorna se a CNH fornecida (registro da carteira nacional de habilitacao, layout 2022)
+e valida: apos remover todos os caracteres nao numericos, devem restar exatamente
+11 digitos e ambos os digitos verificadores devem corresponder ao numero base.
+Layouts anteriores de CNH nao sao suportados. Esta funcao nao verifica a existencia
+da CNH; ela apenas valida o formato da string.
 
-Unlike the CPF/CNPJ/PIS validators, symbols do not need to be removed first:
-formatted input such as `<<"987654321-00">>` is accepted, and letters are
-stripped rather than rejected.
+Diferentemente dos validadores de CPF/CNPJ/PIS, os simbolos nao precisam ser removidos
+antes: entradas formatadas como `<<"987654321-00">>` sao aceitas, e letras sao removidas
+em vez de rejeitadas imediatamente.
 
-Args:
+Argumentos:
 
-- `Cnh` (`term()`): the CNH to be validated. Any non-binary term returns
-  `false` — the function never raises.
+- `Cnh` (`term()`): a CNH a ser validada. Qualquer termo que nao seja binario
+  retorna `false` e a funcao nunca gera excecao.
 
-Returns:
+Retorna:
 
-- `boolean()`: `true` if 11 digits remain after stripping and the check
-  digits match, `false` otherwise.
+- `boolean()`: `true` se restarem 11 digitos apos a limpeza e os digitos
+  verificadores corresponderem; `false` caso contrario.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:is_valid_cnh(<<"98765432100">>).
@@ -406,25 +429,24 @@ false
 
 ### is_valid_renavam
 
-Returns whether the given RENAVAM (Brazilian vehicle registration number) is
-valid: exactly 11 digits whose verifying check digit matches the base number.
-This function does not verify the existence of the RENAVAM; it only validates
-the format of the string.
+Retorna se o RENAVAM fornecido (numero de registro do veiculo) e valido:
+exatamente 11 digitos cujo digito verificador corresponde ao numero base.
+Esta funcao nao verifica a existencia do RENAVAM; ela apenas valida o formato da string.
 
-Unlike `is_valid_cnh`, symbols are **not** stripped: any non-digit character
-(space, dash, letter) makes the input invalid.
+Diferentemente de `is_valid_cnh`, os simbolos **nao** sao removidos: qualquer
+caractere nao numerico (espaco, hifen, letra) torna a entrada invalida.
 
-Args:
+Argumentos:
 
-- `Renavam` (`term()`): the RENAVAM to be validated, an 11-digit binary. Any
-  other term returns `false` — the function never raises.
+- `Renavam` (`term()`): o RENAVAM a ser validado, um binario de 11 digitos.
+  Qualquer outro termo retorna `false` e a funcao nunca gera excecao.
 
-Returns:
+Retorna:
 
-- `boolean()`: `true` if the check digit matches the base number, `false`
-  otherwise.
+- `boolean()`: `true` se o digito verificador corresponder ao numero base,
+  `false` caso contrario.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:is_valid_renavam(<<"86769597308">>).
@@ -439,29 +461,27 @@ false
 
 ## CEP
 
-A CEP (Brazilian postal code) has no check digit: validation is purely
-structural — exactly 8 digits — and says nothing about whether the postal
-code actually exists. Address lookup functions (via the ViaCEP API) are
-planned for a future release.
+Um CEP nao possui digito verificador: a validacao e puramente estrutural,
+com exatamente 8 digitos, e nao informa se o codigo postal realmente existe.
+Funcoes de busca de endereco via ViaCEP estao planejadas para uma futura versao.
 
 ### is_valid_cep
 
-Returns whether the given CEP is valid: a binary of exactly 8 digits. Any
-8-digit sequence is structurally valid, including repeated ones like
-`<<"00000000">>`.
+Retorna se o CEP fornecido e valido: um binario com exatamente 8 digitos.
+Qualquer sequencia de 8 digitos e estruturalmente valida, incluindo repeticoes
+como `<<"00000000">>`.
 
-Args:
+Argumentos:
 
-- `Cep` (`term()`): the CEP to be validated, an 8-digit binary. Any other
-  term returns `false` — the function never raises.
+- `Cep` (`term()`): o CEP a ser validado, um binario de 8 digitos. Qualquer
+  outro termo retorna `false` e a funcao nunca gera excecao.
 
-Returns:
+Retorna:
 
-- `boolean()`: `true` if the input is exactly 8 digits, `false` otherwise.
-  Formatting symbols are not stripped — clean the input with
-  `remove_symbols_cep/1` first.
+- `boolean()`: `true` se a entrada tiver exatamente 8 digitos, `false` caso contrario.
+  Os simbolos de formatacao nao sao removidos; limpe a entrada com `remove_symbols_cep/1` antes.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:is_valid_cep(<<"01310200">>).
@@ -474,18 +494,18 @@ false
 
 ### format_cep
 
-Formats a valid CEP for display, adding the standard dash (`NNNNN-NNN`).
+Formata um CEP valido para exibicao, adicionando o hifen padrao (`NNNNN-NNN`).
 
-Args:
+Argumentos:
 
-- `Cep` (`binary()`): a numbers-only CEP binary.
+- `Cep` (`binary()`): um binario de CEP contendo apenas numeros.
 
-Returns:
+Retorna:
 
-- `{ok, Formatted}` with the formatted CEP, or `{error, invalid}` if the
-  input is not a valid CEP.
+- `{ok, Formatted}` com o CEP formatado, ou `{error, invalid}` se a entrada
+  nao for um CEP valido.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:format_cep(<<"01310200">>).
@@ -496,18 +516,18 @@ Example:
 
 ### remove_symbols_cep
 
-Removes the formatting symbols `.` and `-` from a CEP string. Only those two
-characters are removed; anything else is kept unchanged.
+Remove os simbolos `.` e `-` de uma string de CEP. Apenas esses dois caracteres
+sao removidos; qualquer outro e preservado.
 
-Args:
+Argumentos:
 
-- `Cep` (`binary()`): the CEP binary containing symbols to be removed.
+- `Cep` (`binary()`): o binario de CEP contendo simbolos a serem removidos.
 
-Returns:
+Retorna:
 
-- `binary()`: a new binary with the specified symbols removed.
+- `binary()`: um novo binario com os simbolos especificados removidos.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:remove_symbols_cep(<<"01310-200">>).
@@ -516,14 +536,14 @@ Example:
 
 ### generate_cep
 
-Generates a random CEP as a numbers-only binary. Each digit is drawn
-independently, so results may start with zeros.
+Gera um CEP aleatorio como binario contendo apenas numeros. Cada digito e sorteado
+de forma independente, entao os resultados podem comecar com zero.
 
-Returns:
+Retorna:
 
-- `binary()`: a random 8-digit CEP.
+- `binary()`: um CEP aleatorio de 8 digitos.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:generate_cep().
@@ -532,37 +552,35 @@ Example:
 <<"98885103">>
 ```
 
-## Phone
+## Telefone
 
-Brazilian phone numbers are handled without the +55 country code and with
-the two-digit DDD (area code) included. Two shapes exist:
+Numeros de telefone brasileiros sao tratados sem o codigo do pais `+55` e com
+o DDD de dois digitos incluido. Existem dois formatos:
 
-| Type | Digits | Shape |
+| Tipo | Digitos | Formato |
 |---|---|---|
-| mobile | 11 | DDD (1–9 each) + `9` + 8 digits |
-| landline | 10 | DDD (1–9 each) + one digit 2–5 + 7 digits |
+| celular | 11 | DDD (1-9 cada) + `9` + 8 digitos |
+| fixo | 10 | DDD (1-9 cada) + um digito de 2-5 + 7 digitos |
 
 ### is_valid_phone
 
-Returns whether the given phone number is valid — either shape for the
-one-argument form, or a specific one when the type atom (`mobile` or
-`landline`) is given. It does not verify that the number actually exists.
-Symbols are not stripped — clean the input with `remove_symbols_phone/1`
-first.
+Retorna se o numero de telefone fornecido e valido, aceitando qualquer um dos formatos
+na versao de um argumento, ou um formato especifico quando o atom `mobile` ou `landline`
+e informado. A funcao nao verifica se o numero realmente existe. Os simbolos nao sao
+removidos; limpe a entrada com `remove_symbols_phone/1` antes.
 
-Args:
+Argumentos:
 
-- `Phone` (`term()`): the phone number to be validated, digits only. Any
-  non-binary term returns `false` — the function never raises.
-- `Type` (`mobile | landline`, optional): restricts the check to one shape.
-  Any other value raises.
+- `Phone` (`term()`): o numero de telefone a ser validado, apenas digitos.
+  Qualquer termo que nao seja binario retorna `false` e a funcao nunca gera excecao.
+- `Type` (`mobile | landline`, opcional): restringe a validacao a um dos formatos.
+  Qualquer outro valor gera excecao.
 
-Returns:
+Retorna:
 
-- `boolean()`: `true` if the number matches the (requested) shape, `false`
-  otherwise.
+- `boolean()`: `true` se o numero corresponder ao formato esperado, `false` caso contrario.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:is_valid_phone(<<"11994029275">>).
@@ -577,19 +595,19 @@ false
 
 ### format_phone
 
-Formats a valid phone number for display: DDD in parentheses (no space
-after them) and a dash before the last four digits.
+Formata um numero de telefone valido para exibicao: DDD entre parenteses
+(sem espaco depois deles) e um hifen antes dos ultimos quatro digitos.
 
-Args:
+Argumentos:
 
-- `Phone` (`binary()`): a digits-only phone number.
+- `Phone` (`binary()`): um numero de telefone contendo apenas digitos.
 
-Returns:
+Retorna:
 
-- `{ok, Formatted}` with the formatted number, or `{error, invalid}` if the
-  input is not a valid phone number.
+- `{ok, Formatted}` com o numero formatado, ou `{error, invalid}` se a entrada
+  nao for um numero de telefone valido.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:format_phone(<<"11994029275">>).
@@ -600,18 +618,18 @@ Example:
 
 ### remove_symbols_phone
 
-Removes common phone punctuation from a string: `(`, `)`, `-`, `+` and
-spaces. Dots are NOT removed.
+Remove pontuacao comum de uma string de telefone: `(`, `)`, `-`, `+` e espacos.
+Pontos NAO sao removidos.
 
-Args:
+Argumentos:
 
-- `Phone` (`binary()`): the phone number containing symbols to be removed.
+- `Phone` (`binary()`): o numero de telefone contendo simbolos a serem removidos.
 
-Returns:
+Retorna:
 
-- `binary()`: a new binary with the specified symbols removed.
+- `binary()`: um novo binario com os simbolos especificados removidos.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:remove_symbols_phone(<<"+55 (11) 99402-9275">>).
@@ -620,21 +638,20 @@ Example:
 
 ### remove_international_dialing_code
 
-Removes the Brazilian international dialing code (`55`) from a phone
-number: if the input contains `55` and is longer than 11 characters
-(ignoring spaces), the first occurrence of `55` is removed; otherwise the
-input is returned unchanged. Note the sharp edges: a leading `+` is kept,
-and the removed `55` is the first occurrence wherever it sits.
+Remove o codigo internacional brasileiro (`55`) de um numero de telefone: se a entrada
+contiver `55` e tiver mais de 11 caracteres (ignorando espacos), a primeira ocorrencia
+de `55` e removida; caso contrario, a entrada e retornada sem alteracoes. Note as bordas:
+um `+` inicial e preservado, e o `55` removido e a primeira ocorrencia onde quer que apareca.
 
-Args:
+Argumentos:
 
-- `Phone` (`binary()`): the phone number, possibly with the dialing code.
+- `Phone` (`binary()`): o numero de telefone, possivelmente com o codigo internacional.
 
-Returns:
+Retorna:
 
-- `binary()`: the number without the dialing code, or unchanged.
+- `binary()`: o numero sem o codigo internacional, ou a entrada original.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:remove_international_dialing_code(<<"5511994029275">>).
@@ -645,14 +662,14 @@ Example:
 
 ### generate_phone
 
-Generates a random valid phone number — of a random type with no argument,
-or of the given type (`mobile` or `landline`).
+Gera um numero de telefone valido aleatorio, de tipo aleatorio sem argumentos,
+ou do tipo informado (`mobile` ou `landline`).
 
-Returns:
+Retorna:
 
-- `binary()`: a random valid phone number.
+- `binary()`: um numero de telefone valido aleatorio.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:generate_phone().
@@ -663,31 +680,30 @@ Example:
 <<"7529936607">>
 ```
 
-## Passport
+## Passaporte
 
-A Brazilian passport number has 2 uppercase letters followed by 6 digits.
-There is no check digit, so validity says nothing about existence. Note the
-division of labor: `is_valid_passport` is strict (case-sensitive, no
-symbol stripping), while `format_passport` is lenient — it uppercases and
-strips symbols before validating, so the same input can fail one and pass
-the other.
+Um numero de passaporte brasileiro possui 2 letras maiusculas seguidas de 6 digitos.
+Nao ha digito verificador, entao a validade nao informa existencia. Note a divisao de
+responsabilidades: `is_valid_passport` e estrita (sensivel a caixa e sem remocao de simbolos),
+enquanto `format_passport` e mais tolerante, convertendo para maiusculas e removendo simbolos
+antes de validar. Assim, a mesma entrada pode falhar em uma e passar na outra.
 
 ### is_valid_passport
 
-Returns whether the given passport number is valid: exactly 2 uppercase
-letters followed by exactly 6 digits. Lowercase letters and symbols make
-the input invalid — use `format_passport/1` to normalize first.
+Retorna se o numero de passaporte fornecido e valido: exatamente 2 letras maiusculas
+seguidas de exatamente 6 digitos. Letras minusculas e simbolos tornam a entrada invalida.
+Use `format_passport/1` para normalizar antes, se necessario.
 
-Args:
+Argumentos:
 
-- `Passport` (`term()`): the passport number to be validated. Any
-  non-binary term returns `false` — the function never raises.
+- `Passport` (`term()`): o numero de passaporte a ser validado. Qualquer termo
+  que nao seja binario retorna `false` e a funcao nunca gera excecao.
 
-Returns:
+Retorna:
 
-- `boolean()`: `true` if the input matches the shape, `false` otherwise.
+- `boolean()`: `true` se a entrada corresponder ao formato, `false` caso contrario.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:is_valid_passport(<<"AB123456">>).
@@ -700,20 +716,20 @@ false
 
 ### format_passport
 
-Normalizes and formats a passport number: uppercases ASCII letters, strips
-the symbols `-`, `.` and spaces, then validates the result.
+Normaliza e formata um numero de passaporte: converte letras ASCII para maiusculas,
+remove os simbolos `-`, `.` e espacos, e depois valida o resultado.
 
-Args:
+Argumentos:
 
-- `Passport` (`binary()`): a passport number, possibly lowercase or with
-  symbols.
+- `Passport` (`binary()`): um numero de passaporte, possivelmente com letras minusculas
+  ou simbolos.
 
-Returns:
+Retorna:
 
-- `{ok, Formatted}` with the normalized uppercase passport, or
-  `{error, invalid}` if the input does not normalize into a valid one.
+- `{ok, Formatted}` com o passaporte normalizado em maiusculas, ou
+  `{error, invalid}` se a entrada nao normalizar para um valor valido.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:format_passport(<<"ab-123456">>).
@@ -724,19 +740,18 @@ Example:
 
 ### remove_symbols_passport
 
-Removes the symbols `-`, `.` and spaces from a passport string. Only those
-three characters are removed, and letter case is preserved.
+Remove os simbolos `-`, `.` e espacos de uma string de passaporte. Apenas esses
+tres caracteres sao removidos, e a caixa das letras e preservada.
 
-Args:
+Argumentos:
 
-- `Passport` (`binary()`): the passport string containing symbols to be
-  removed.
+- `Passport` (`binary()`): a string de passaporte contendo simbolos a serem removidos.
 
-Returns:
+Retorna:
 
-- `binary()`: a new binary with the specified symbols removed.
+- `binary()`: um novo binario com os simbolos especificados removidos.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:remove_symbols_passport(<<"Ab -. 123456">>).
@@ -745,14 +760,14 @@ Example:
 
 ### generate_passport
 
-Generates a random valid passport number: 2 uniform uppercase letters
-followed by 6 uniform digits.
+Gera um numero de passaporte valido aleatorio: 2 letras maiusculas uniformes
+seguidas de 6 digitos uniformes.
 
-Returns:
+Retorna:
 
-- `binary()`: a random valid passport number.
+- `binary()`: um numero de passaporte valido aleatorio.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:generate_passport().
@@ -761,35 +776,35 @@ Example:
 <<"ZN446187">>
 ```
 
-## License plate
+## Placa de Veiculo
 
-Two Brazilian plate patterns exist:
+Existem dois padroes brasileiros de placa:
 
-| Type atom | Pattern | Example |
+| Tipo atomico | Padrao | Exemplo |
 |---|---|---|
-| `old_format` | `LLLNNNN` — 3 letters + 4 digits | `ABC1234` |
-| `mercosul` | `LLLNLNN` — 3 letters, digit, letter, 2 digits | `ABC1D23` |
+| `old_format` | `LLLNNNN` - 3 letras + 4 digitos | `ABC1234` |
+| `mercosul` | `LLLNLNN` - 3 letras, digito, letra, 2 digitos | `ABC1D23` |
 
-Validation ignores letter case and trims surrounding whitespace; formatting
-and conversion emit uppercase.
+A validacao ignora caixa das letras e remove espacos nas extremidades; formatacao
+e conversao sempre retornam letras maiusculas.
 
 ### is_valid_license_plate
 
-Returns whether the given plate is valid — either pattern for the
-one-argument form, or a specific one when the type atom is given.
+Retorna se a placa fornecida e valida, aceitando qualquer um dos padroes na forma
+de um argumento, ou um padrao especifico quando o tipo atomico e informado.
 
-Args:
+Argumentos:
 
-- `Plate` (`term()`): the plate to be validated. Any non-binary term
-  returns `false` — the function never raises.
-- `Type` (`old_format | mercosul`, optional): restricts the check to one
-  pattern. Any other value raises.
+- `Plate` (`term()`): a placa a ser validada. Qualquer termo que nao seja binario
+  retorna `false` e a funcao nunca gera excecao.
+- `Type` (`old_format | mercosul`, opcional): restringe a validacao a um dos padroes.
+  Qualquer outro valor gera excecao.
 
-Returns:
+Retorna:
 
-- `boolean()`: `true` if the plate matches the (requested) pattern.
+- `boolean()`: `true` se a placa corresponder ao padrao esperado.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:is_valid_license_plate(<<"ABC1234">>).
@@ -804,19 +819,19 @@ false
 
 ### format_license_plate
 
-Formats a valid plate for display: old-format plates get a dash after the
-letters, Mercosul plates come out bare — both uppercased.
+Formata uma placa valida para exibicao: placas do formato antigo recebem um hifen
+apos as letras, enquanto placas Mercosul permanecem sem separador, ambas em maiusculas.
 
-Args:
+Argumentos:
 
-- `Plate` (`binary()`): a license plate, any letter case.
+- `Plate` (`binary()`): uma placa de veiculo, em qualquer caixa de letras.
 
-Returns:
+Retorna:
 
-- `{ok, Formatted}` with the formatted plate, or `{error, invalid}` if the
-  input matches neither pattern.
+- `{ok, Formatted}` com a placa formatada, ou `{error, invalid}` se a entrada
+  nao corresponder a nenhum dos padroes.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:format_license_plate(<<"abc1234">>).
@@ -827,18 +842,18 @@ Example:
 
 ### remove_symbols_license_plate
 
-Removes the dash (`-`) from a license plate string. Only the dash is
-removed; anything else is kept unchanged.
+Remove o hifen (`-`) de uma string de placa. Apenas o hifen e removido;
+qualquer outro caractere e preservado.
 
-Args:
+Argumentos:
 
-- `Plate` (`binary()`): the plate string containing dashes to be removed.
+- `Plate` (`binary()`): a string da placa contendo hifens a serem removidos.
 
-Returns:
+Retorna:
 
-- `binary()`: a new binary with the dashes removed.
+- `binary()`: um novo binario com os hifens removidos.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:remove_symbols_license_plate(<<"ABC-123">>).
@@ -847,20 +862,20 @@ Example:
 
 ### convert_license_plate_to_mercosul
 
-Converts an old-format plate to the Mercosul pattern by replacing the digit
-at the fifth position with a letter (`0`→`A`, `1`→`B`, ... `9`→`J`). An
-already-Mercosul plate yields an error, not a no-op.
+Converte uma placa do formato antigo para o padrao Mercosul, substituindo o digito
+na quinta posicao por uma letra (`0` -> `A`, `1` -> `B`, ... `9` -> `J`). Uma placa
+ja no formato Mercosul gera erro, em vez de ser tratada como no-op.
 
-Args:
+Argumentos:
 
-- `Plate` (`binary()`): an old-format plate, any letter case.
+- `Plate` (`binary()`): uma placa do formato antigo, em qualquer caixa de letras.
 
-Returns:
+Retorna:
 
-- `{ok, Converted}` with the Mercosul plate, or `{error, invalid}` if the
-  input is not a valid old-format plate.
+- `{ok, Converted}` com a placa Mercosul convertida, ou `{error, invalid}`
+  se a entrada nao for uma placa valida do formato antigo.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:convert_license_plate_to_mercosul(<<"ABC4567">>).
@@ -871,20 +886,20 @@ Example:
 
 ### get_format_license_plate
 
-Detects the pattern of a license plate, returning the type atom
-(`old_format` for `LLLNNNN`, `mercosul` for `LLLNLNN`) — the result can be
-fed straight back into `is_valid_license_plate/2`.
+Detecta o padrao de uma placa, retornando o atom correspondente (`old_format`
+para `LLLNNNN` e `mercosul` para `LLLNLNN`). O resultado pode ser usado diretamente
+em `is_valid_license_plate/2`.
 
-Args:
+Argumentos:
 
-- `Plate` (`binary()`): the plate to inspect, any letter case.
+- `Plate` (`binary()`): a placa a ser inspecionada, em qualquer caixa de letras.
 
-Returns:
+Retorna:
 
-- `{ok, old_format | mercosul}`, or `{error, invalid}` if the input
-  matches neither pattern.
+- `{ok, old_format | mercosul}`, ou `{error, invalid}` se a entrada nao
+  corresponder a nenhum dos padroes.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:get_format_license_plate(<<"abc1234">>).
@@ -895,15 +910,15 @@ Example:
 
 ### generate_license_plate
 
-Generates a random valid plate — Mercosul with no argument, or in the
-given pattern (`<<"LLLNNNN">>` or `<<"LLLNLNN">>`, case insensitive).
+Gera uma placa valida aleatoria, Mercosul sem argumentos, ou no padrao fornecido
+(`<<"LLLNNNN">>` ou `<<"LLLNLNN">>`, sem diferenciar maiusculas de minusculas).
 
-Returns:
+Retorna:
 
-- `{ok, Plate}` with the generated plate; the pattern form yields
-  `{error, invalid}` for unknown patterns.
+- `{ok, Plate}` com a placa gerada; a forma com padrao retorna `{error, invalid}`
+  para formatos desconhecidos.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:generate_license_plate().
@@ -912,39 +927,36 @@ Example:
 {ok,<<"BFX5517">>}
 ```
 
-## Voter ID
+## Titulo de Eleitor
 
-A Brazilian voter id (título de eleitor) is read from the right:
+Um titulo de eleitor brasileiro e lido da direita para a esquerda:
 
-| Field | Digits | Position |
+| Campo | Digitos | Posicao |
 |---|---|---|
-| sequential number | 8 (or 9 for some SP/MG titles) | leading |
-| federative union | 2 | before the check digits |
-| check digits | 2 | last |
+| numero sequencial | 8 (ou 9 em alguns titulos de SP/MG) | inicio |
+| unidade federativa | 2 | antes dos digitos verificadores |
+| digitos verificadores | 2 | final |
 
-Titles normally have 12 digits; São Paulo and Minas Gerais titles may have
-13 (an extra sequential digit that the checksum ignores). Federative-union
-codes run `01` (SP) through `27` (TO), with `28` (`ZZ`) for titles issued
-abroad.
+Titulos normalmente possuem 12 digitos; titulos de Sao Paulo e Minas Gerais podem
+ter 13 (um digito sequencial extra que o checksum ignora). Os codigos de UF vao de
+`01` (SP) a `27` (TO), com `28` (`ZZ`) para titulos emitidos no exterior.
 
 ### is_valid_voter_id
 
-Returns whether the given voter id is valid: correct length for its
-federative union, code in range, and both verifying check digits matching.
-This function does not verify the existence of the title; it only validates
-the format of the string.
+Retorna se o titulo de eleitor fornecido e valido: tamanho correto para sua UF,
+codigo em faixa valida, e ambos os digitos verificadores correspondendo ao valor esperado.
+Esta funcao nao verifica a existencia do titulo; ela apenas valida o formato da string.
 
-Args:
+Argumentos:
 
-- `VoterId` (`term()`): the voter id to be validated, a 12- or 13-digit
-  binary. Any non-binary term returns `false` — the function never raises.
+- `VoterId` (`term()`): o titulo a ser validado, um binario de 12 ou 13 digitos.
+  Qualquer termo que nao seja binario retorna `false` e a funcao nunca gera excecao.
 
-Returns:
+Retorna:
 
-- `boolean()`: `true` if the title is structurally valid, `false`
-  otherwise.
+- `boolean()`: `true` se o titulo for estruturalmente valido, `false` caso contrario.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:is_valid_voter_id(<<"690847092828">>).
@@ -957,20 +969,19 @@ true
 
 ### format_voter_id
 
-Formats a valid 12-digit voter id for display with visual spacing
-(`NNNN NNNN NN NN`). Valid 13-digit SP/MG titles yield `{error, invalid}`:
-the display mask has no slot for their extra digit, so they are refused
-rather than silently truncated.
+Formata um titulo de eleitor valido de 12 digitos para exibicao com espacos visuais
+(`NNNN NNNN NN NN`). Titulos validos de 13 digitos de SP/MG retornam `{error, invalid}`:
+como a mascara nao comporta o digito extra, eles sao rejeitados em vez de truncados.
 
-Args:
+Argumentos:
 
-- `VoterId` (`binary()`): a numbers-only 12-digit voter id.
+- `VoterId` (`binary()`): um titulo de eleitor de 12 digitos contendo apenas numeros.
 
-Returns:
+Retorna:
 
-- `{ok, Formatted}` with the spaced voter id, or `{error, invalid}`.
+- `{ok, Formatted}` com o titulo formatado, ou `{error, invalid}`.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:format_voter_id(<<"690847092828">>).
@@ -981,16 +992,16 @@ Example:
 
 ### generate_voter_id
 
-Generates a random valid 12-digit voter id — for a title issued abroad
-(`ZZ`) with no argument, or for the given federative union (two-letter
-code, case insensitive).
+Gera um titulo de eleitor valido aleatorio de 12 digitos, emitido no exterior (`ZZ`)
+sem argumentos, ou para a unidade federativa informada (codigo de duas letras,
+case-insensitive).
 
-Returns:
+Retorna:
 
-- `{ok, VoterId}` with the generated title; the UF form yields
-  `{error, invalid}` for unknown codes.
+- `{ok, VoterId}` com o titulo gerado; a forma com UF retorna `{error, invalid}`
+  para codigos desconhecidos.
 
-Example:
+Exemplo:
 
 ```erlang
 1> brutils:generate_voter_id().
@@ -1001,6 +1012,45 @@ Example:
 {error,invalid}
 ```
 
-## Author
+## Autor
 
 Camilo Cunha de Azevedo <camilotk@gmail.com>
+
+# Novos Utilitarios e Reportar Bugs
+
+Caso queira sugerir novas funcionalidades ou reportar bugs, basta criar
+uma nova [issue][github-issues] e iremos lhe responder por la.
+
+(Para saber mais sobre github issues, confira a [documentacao oficial do GitHub][github-issues-doc]).
+
+# Duvidas? Ideias?
+
+Duvidas de como utilizar a biblioteca? Novas ideias para o projeto?
+Quer compartilhar algo com a gente? Fique a vontade para criar um topico no nosso
+[Discussions][github-discussions] que iremos interagir por la.
+
+(Para saber mais sobre github discussions, confira a
+[documentacao oficial do GitHub][github-discussions-doc]).
+
+# Contribuindo com o Codigo do Projeto
+
+Sua colaboracao e sempre muito bem-vinda! Enquanto este repositorio ainda nao possui um
+`CONTRIBUTING.md`, voce pode contribuir abrindo discussao, issue ou pull request com contexto
+claro sobre a proposta.
+
+Antes de abrir um PR, recomendamos:
+
+1. Garantir que o codigo compila com `rebar3 compile`.
+2. Rodar os testes com `rebar3 eunit --cover`.
+3. Rodar os testes de propriedade com `rebar3 proper -n 200 -c`.
+4. Verificar a analise estatica com `rebar3 xref`, `rebar3 dialyzer` e `rebar3 edoc`.
+
+Nao hesite em nos perguntar utilizando o [GitHub Discussions][github-discussions] caso
+haja qualquer dificuldade ou duvida. Toda ajuda conta.
+
+Vamos construir juntos!
+
+[github-discussions-doc]: https://docs.github.com/pt/discussions
+[github-discussions]: https://github.com/brazilian-utils/erlang/discussions
+[github-issues-doc]: https://docs.github.com/pt/issues/tracking-your-work-with-issues/creating-an-issue
+[github-issues]: https://github.com/brazilian-utils/erlang/issues
