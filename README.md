@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<p>Biblioteca de utilitarios projetada para validar, gerar e manipular dados de acordo com as particularidades do Brasil.</p>
+<p>Biblioteca de utilitários projetada para validar, gerar e manipular dados de acordo com as particularidades do Brasil.</p>
 
 [![GitHub License](https://img.shields.io/github/license/brazilian-utils/erlang?color=blue)](https://opensource.org/license/mit)
 [![Package version](https://img.shields.io/hexpm/v/brutils)](https://hex.pm/packages/brutils)
@@ -13,58 +13,54 @@
 
 </div>
 
-# Introducao
+# Introdução
 
-Brazilian Utils e uma biblioteca com foco na resolucao de problemas que enfrentamos diariamente no
-desenvolvimento de aplicacoes para o business brasileiro.
+Brazilian Utils é uma biblioteca com foco na resolução de problemas que enfrentamos diariamente no desenvolvimento de aplicações para negócios brasileiros.
 
-- [Instalacao](#instalacao)
+- [Instalação](#instalação)
 - [Build](#build)
-- [Utilizacao](#utilizacao)
-- [Utilitarios](#utilitarios)
-- [Novos Utilitarios e Reportar Bugs](#novos-utilitarios-e-reportar-bugs)
-- [Duvidas? Ideias?](#duvidas-ideias)
-- [Contribuindo com o Codigo do Projeto](#contribuindo-com-o-codigo-do-projeto)
+- [Utilização](#utilização)
+- [Utilitários](#utilitários)
+- [Novos Utilitários e Reportar Bugs](#novos-utilitários-e-reportar-bugs)
+- [Dúvidas? Ideias?](#dúvidas-ideias)
+- [Contribuindo com o Código do Projeto](#contribuindo-com-o-código-do-projeto)
 
-# Instalacao
+# Instalação
 
 Adicione `brutils` ao seu `rebar.config`:
 
 ```erlang
 {deps, [
   {brutils, "0.1.1"}
-]}.
+]}. 
 ```
 
 # Build
 
-Requer Erlang/OTP 25 ou superior (testado nas versoes 25, 26 e 27).
+Requer Erlang/OTP 25 ou superior (testado nas versões 25, 26 e 27).
 
 ```sh
 rebar3 compile
 ```
 
-Gere a documentacao da API com:
+Gere a documentação da API com:
 
 ```sh
 rebar3 edoc
 ```
 
-# Utilizacao
+# Utilização
 
-Todas as funcoes estao disponiveis atraves do modulo fachada `brutils` e operam sobre
-binarios UTF-8:
+Todas as funções estão disponíveis por meio do módulo fachada `brutils` e operam sobre binários UTF-8:
 
 ```erlang
 1> brutils:is_valid_cpf(<<"82178537464">>).
 true
 ```
 
-Cada utilitario tambem existe em seu proprio modulo (`brutils_cpf`, ...) com os
-nomes sem sufixo (`brutils_cpf:is_valid/1`), caso voce prefira depender diretamente
-do modulo de dominio.
+Cada utilitário também existe em seu próprio módulo (`brutils_cpf`, ...) com nomes sem sufixo (`brutils_cpf:is_valid/1`), caso você prefira depender diretamente do módulo de domínio.
 
-# Utilitarios
+# Utilitários
 
 - [CPF](#cpf)
   - [is_valid_cpf](#is_valid_cpf)
@@ -101,14 +97,14 @@ do modulo de dominio.
   - [format_passport](#format_passport)
   - [remove_symbols_passport](#remove_symbols_passport)
   - [generate_passport](#generate_passport)
-- [Placa de Veiculo](#placa-de-veiculo)
+- [Placa de Veículo](#placa-de-veículo)
   - [is_valid_license_plate](#is_valid_license_plate)
   - [format_license_plate](#format_license_plate)
   - [remove_symbols_license_plate](#remove_symbols_license_plate)
   - [convert_license_plate_to_mercosul](#convert_license_plate_to_mercosul)
   - [get_format_license_plate](#get_format_license_plate)
   - [generate_license_plate](#generate_license_plate)
-- [Titulo de Eleitor](#titulo-de-eleitor)
+- [Título de Eleitor](#título-de-eleitor)
   - [is_valid_voter_id](#is_valid_voter_id)
   - [format_voter_id](#format_voter_id)
   - [generate_voter_id](#generate_voter_id)
@@ -117,19 +113,15 @@ do modulo de dominio.
 
 ### is_valid_cpf
 
-Retorna se os digitos verificadores do CPF fornecido correspondem ao seu numero base.
-Esta funcao nao verifica a existencia do CPF; ela apenas valida o formato da string.
+Retorna se os dígitos verificadores do CPF informado correspondem ao seu número-base. Esta função não verifica a existência do CPF; ela apenas valida o formato da string.
 
 Argumentos:
 
-- `Cpf` (`term()`): o CPF a ser validado, um binario de 11 digitos. Qualquer
-  outro termo retorna `false` e a funcao nunca gera excecao.
+- `Cpf` (`term()`): o CPF a ser validado, em um binário de 11 dígitos. Qualquer outro termo retorna `false`, e a função nunca gera exceção.
 
 Retorna:
 
-- `boolean()`: `true` se os digitos verificadores corresponderem ao numero base,
-  `false` caso contrario. Os simbolos de formatacao nao sao removidos, entao um
-  CPF formatado deve ser limpo com `remove_symbols_cpf/1` antes.
+- `boolean()`: `true` se os dígitos verificadores corresponderem ao número-base; `false`, caso contrário. Os símbolos de formatação não são removidos, então um CPF formatado deve ser limpo com `remove_symbols_cpf/1` antes.
 
 Exemplo:
 
@@ -142,17 +134,15 @@ false
 
 ### format_cpf
 
-Formata um CPF valido para exibicao, adicionando os simbolos visuais padrao
-(`XXX.XXX.XXX-XX`).
+Formata um CPF válido para exibição, adicionando os símbolos visuais padrão (`XXX.XXX.XXX-XX`).
 
 Argumentos:
 
-- `Cpf` (`binary()`): um binario de CPF contendo apenas numeros.
+- `Cpf` (`binary()`): um binário de CPF contendo apenas números.
 
 Retorna:
 
-- `{ok, Formatted}` com o CPF formatado, ou `{error, invalid}` se a entrada
-  nao for um CPF valido.
+- `{ok, Formatted}` com o CPF formatado, ou `{error, invalid}` se a entrada não for um CPF válido.
 
 Exemplo:
 
@@ -165,16 +155,15 @@ Exemplo:
 
 ### remove_symbols_cpf
 
-Remove os simbolos `.` e `-` de uma string de CPF. Apenas esses dois caracteres
-sao removidos; qualquer outro e preservado.
+Remove os símbolos `.` e `-` de uma string de CPF. Apenas esses dois caracteres são removidos; qualquer outro é preservado.
 
 Argumentos:
 
-- `Cpf` (`binary()`): o binario de CPF contendo simbolos a serem removidos.
+- `Cpf` (`binary()`): o binário de CPF contendo símbolos a serem removidos.
 
 Retorna:
 
-- `binary()`: um novo binario com os simbolos especificados removidos.
+- `binary()`: um novo binário com os símbolos especificados removidos.
 
 Exemplo:
 
@@ -185,11 +174,11 @@ Exemplo:
 
 ### generate_cpf
 
-Gera um CPF valido aleatorio como binario contendo apenas numeros.
+Gera um CPF válido aleatório como binário contendo apenas números.
 
 Retorna:
 
-- `binary()`: um CPF valido aleatorio de 11 digitos.
+- `binary()`: um CPF válido aleatório de 11 dígitos.
 
 Exemplo:
 
@@ -204,21 +193,15 @@ Exemplo:
 
 ### is_valid_cnpj
 
-Retorna se os digitos verificadores do CNPJ fornecido correspondem ao seu numero base.
-Tanto o formato numerico quanto o formato alfanumerico de 2026 (digitos e letras
-maiuculas nos 12 primeiros caracteres) sao suportados. Esta funcao nao verifica a
-existencia do CNPJ; ela apenas valida o formato da string.
+Retorna se os dígitos verificadores do CNPJ informado correspondem ao seu número-base. Tanto o formato numérico quanto o formato alfanumérico de 2026 (dígitos e letras maiúsculas nos 12 primeiros caracteres) são suportados. Esta função não verifica a existência do CNPJ; ela apenas valida o formato da string.
 
 Argumentos:
 
-- `Cnpj` (`term()`): o CNPJ a ser validado, um binario de 14 caracteres.
-  Qualquer outro termo retorna `false` e a funcao nunca gera excecao.
+- `Cnpj` (`term()`): o CNPJ a ser validado, em um binário de 14 caracteres. Qualquer outro termo retorna `false`, e a função nunca gera exceção.
 
 Retorna:
 
-- `boolean()`: `true` se os digitos verificadores corresponderem ao numero base,
-  `false` caso contrario. Letras minusculas sao invalidas, e os simbolos de
-  formatacao nao sao removidos. Limpe a entrada com `remove_symbols_cnpj/1` antes.
+- `boolean()`: `true` se os dígitos verificadores corresponderem ao número-base; `false`, caso contrário. Letras minúsculas são inválidas, e os símbolos de formatação não são removidos. Limpe a entrada com `remove_symbols_cnpj/1` antes.
 
 Exemplo:
 
@@ -233,17 +216,15 @@ true
 
 ### format_cnpj
 
-Formata um CNPJ valido para exibicao, adicionando os simbolos visuais padrao
-(`XX.XXX.XXX/XXXX-XX`).
+Formata um CNPJ válido para exibição, adicionando os símbolos visuais padrão (`XX.XXX.XXX/XXXX-XX`).
 
 Argumentos:
 
-- `Cnpj` (`binary()`): um binario de CNPJ sem simbolos, numerico ou alfanumerico.
+- `Cnpj` (`binary()`): um binário de CNPJ sem símbolos, numérico ou alfanumérico.
 
 Retorna:
 
-- `{ok, Formatted}` com o CNPJ formatado, ou `{error, invalid}` se a entrada
-  nao for um CNPJ valido.
+- `{ok, Formatted}` com o CNPJ formatado, ou `{error, invalid}` se a entrada não for um CNPJ válido.
 
 Exemplo:
 
@@ -256,16 +237,15 @@ Exemplo:
 
 ### remove_symbols_cnpj
 
-Remove os simbolos `.`, `/` e `-` de uma string de CNPJ. Apenas esses tres
-caracteres sao removidos; qualquer outro e preservado.
+Remove os símbolos `.`, `/` e `-` de uma string de CNPJ. Apenas esses três caracteres são removidos; qualquer outro é preservado.
 
 Argumentos:
 
-- `Cnpj` (`binary()`): o binario de CNPJ contendo simbolos a serem removidos.
+- `Cnpj` (`binary()`): o binário de CNPJ contendo símbolos a serem removidos.
 
 Retorna:
 
-- `binary()`: um novo binario com os simbolos especificados removidos.
+- `binary()`: um novo binário com os símbolos especificados removidos.
 
 Exemplo:
 
@@ -276,14 +256,11 @@ Exemplo:
 
 ### generate_cnpj
 
-Gera um CNPJ valido aleatorio. Um numero de filial opcional pode ser informado
-(inteiro nao negativo ou binario contendo apenas digitos; o padrao e 1), e uma
-flag opcional permite usar o formato alfanumerico de 2026, em que a filial tambem
-pode conter letras maiusculas e filiais invalidas sao substituidas por `0001`.
+Gera um CNPJ válido aleatório. Um número de filial opcional pode ser informado (inteiro não negativo ou binário contendo apenas dígitos; o padrão é 1), e uma flag opcional permite usar o formato alfanumérico de 2026, em que a filial também pode conter letras maiúsculas e filiais inválidas são substituídas por `0001`.
 
 Retorna:
 
-- `binary()`: um CNPJ valido aleatorio de 14 caracteres.
+- `binary()`: um CNPJ válido aleatório de 14 caracteres.
 
 Exemplo:
 
@@ -300,21 +277,15 @@ Exemplo:
 
 ### is_valid_pis
 
-Retorna se o digito verificador do PIS/PASEP fornecido corresponde ao seu numero base.
-Esta funcao nao verifica a existencia do PIS; ela apenas valida o formato da string.
+Retorna se o dígito verificador do PIS/PASEP informado corresponde ao seu número-base. Esta função não verifica a existência do PIS; ela apenas valida o formato da string.
 
 Argumentos:
 
-- `Pis` (`term()`): o PIS a ser validado, um binario de 11 digitos. Qualquer
-  outro termo retorna `false` e a funcao nunca gera excecao.
+- `Pis` (`term()`): o PIS a ser validado, em um binário de 11 dígitos. Qualquer outro termo retorna `false`, e a função nunca gera exceção.
 
 Retorna:
 
-- `boolean()`: `true` se o digito verificador corresponder ao numero base,
-  `false` caso contrario. O PIS nao reserva sequencias de digitos repetidos,
-  entao `<<"00000000000">>` possui digito verificador compativel e e valido.
-  Os simbolos de formatacao nao sao removidos; limpe a entrada com
-  `remove_symbols_pis/1` antes.
+- `boolean()`: `true` se o dígito verificador corresponder ao número-base; `false`, caso contrário. O PIS não reserva sequências de dígitos repetidos, então `<<"00000000000">>` possui dígito verificador compatível e é válido. Os símbolos de formatação não são removidos; limpe a entrada com `remove_symbols_pis/1` antes.
 
 Exemplo:
 
@@ -329,17 +300,15 @@ true
 
 ### format_pis
 
-Formata um PIS valido para exibicao, adicionando os simbolos visuais padrao
-(`NNN.NNNNN.NN-N`).
+Formata um PIS válido para exibição, adicionando os símbolos visuais padrão (`NNN.NNNNN.NN-N`).
 
 Argumentos:
 
-- `Pis` (`binary()`): um binario de PIS contendo apenas numeros.
+- `Pis` (`binary()`): um binário de PIS contendo apenas números.
 
 Retorna:
 
-- `{ok, Formatted}` com o PIS formatado, ou `{error, invalid}` se a entrada
-  nao for um PIS valido.
+- `{ok, Formatted}` com o PIS formatado, ou `{error, invalid}` se a entrada não for um PIS válido.
 
 Exemplo:
 
@@ -352,16 +321,15 @@ Exemplo:
 
 ### remove_symbols_pis
 
-Remove os simbolos `.` e `-` de uma string de PIS. Apenas esses dois caracteres
-sao removidos; qualquer outro e preservado.
+Remove os símbolos `.` e `-` de uma string de PIS. Apenas esses dois caracteres são removidos; qualquer outro é preservado.
 
 Argumentos:
 
-- `Pis` (`binary()`): o binario de PIS contendo simbolos a serem removidos.
+- `Pis` (`binary()`): o binário de PIS contendo símbolos a serem removidos.
 
 Retorna:
 
-- `binary()`: um novo binario com os simbolos especificados removidos.
+- `binary()`: um novo binário com os símbolos especificados removidos.
 
 Exemplo:
 
@@ -372,12 +340,11 @@ Exemplo:
 
 ### generate_pis
 
-Gera um PIS valido aleatorio como binario contendo apenas numeros. A base e sorteada
-uniformemente com zero incluido, entao os resultados podem comecar com zero.
+Gera um PIS válido aleatório como binário contendo apenas números. A base é sorteada uniformemente com zero incluído, então os resultados podem começar com zero.
 
 Retorna:
 
-- `binary()`: um PIS valido aleatorio de 11 digitos.
+- `binary()`: um PIS válido aleatório de 11 dígitos.
 
 Exemplo:
 
@@ -392,25 +359,17 @@ Exemplo:
 
 ### is_valid_cnh
 
-Retorna se a CNH fornecida (registro da carteira nacional de habilitacao, layout 2022)
-e valida: apos remover todos os caracteres nao numericos, devem restar exatamente
-11 digitos e ambos os digitos verificadores devem corresponder ao numero base.
-Layouts anteriores de CNH nao sao suportados. Esta funcao nao verifica a existencia
-da CNH; ela apenas valida o formato da string.
+Retorna se a CNH informada (registro da Carteira Nacional de Habilitação, layout 2022) é válida: após remover todos os caracteres não numéricos, devem restar exatamente 11 dígitos, e ambos os dígitos verificadores devem corresponder ao número-base. Layouts anteriores de CNH não são suportados. Esta função não verifica a existência da CNH; ela apenas valida o formato da string.
 
-Diferentemente dos validadores de CPF/CNPJ/PIS, os simbolos nao precisam ser removidos
-antes: entradas formatadas como `<<"987654321-00">>` sao aceitas, e letras sao removidas
-em vez de rejeitadas imediatamente.
+Diferentemente dos validadores de CPF/CNPJ/PIS, os símbolos não precisam ser removidos antes: entradas formatadas como `<<"987654321-00">>` são aceitas, e letras são removidas em vez de rejeitadas imediatamente.
 
 Argumentos:
 
-- `Cnh` (`term()`): a CNH a ser validada. Qualquer termo que nao seja binario
-  retorna `false` e a funcao nunca gera excecao.
+- `Cnh` (`term()`): a CNH a ser validada. Qualquer termo que não seja binário retorna `false`, e a função nunca gera exceção.
 
 Retorna:
 
-- `boolean()`: `true` se restarem 11 digitos apos a limpeza e os digitos
-  verificadores corresponderem; `false` caso contrario.
+- `boolean()`: `true` se restarem 11 dígitos após a limpeza e os dígitos verificadores corresponderem; `false`, caso contrário.
 
 Exemplo:
 
@@ -429,22 +388,17 @@ false
 
 ### is_valid_renavam
 
-Retorna se o RENAVAM fornecido (numero de registro do veiculo) e valido:
-exatamente 11 digitos cujo digito verificador corresponde ao numero base.
-Esta funcao nao verifica a existencia do RENAVAM; ela apenas valida o formato da string.
+Retorna se o RENAVAM informado (número de registro do veículo) é válido: exatamente 11 dígitos cujo dígito verificador corresponde ao número-base. Esta função não verifica a existência do RENAVAM; ela apenas valida o formato da string.
 
-Diferentemente de `is_valid_cnh`, os simbolos **nao** sao removidos: qualquer
-caractere nao numerico (espaco, hifen, letra) torna a entrada invalida.
+Diferentemente de `is_valid_cnh`, os símbolos **não** são removidos: qualquer caractere não numérico (espaço, hífen, letra) torna a entrada inválida.
 
 Argumentos:
 
-- `Renavam` (`term()`): o RENAVAM a ser validado, um binario de 11 digitos.
-  Qualquer outro termo retorna `false` e a funcao nunca gera excecao.
+- `Renavam` (`term()`): o RENAVAM a ser validado, em um binário de 11 dígitos. Qualquer outro termo retorna `false`, e a função nunca gera exceção.
 
 Retorna:
 
-- `boolean()`: `true` se o digito verificador corresponder ao numero base,
-  `false` caso contrario.
+- `boolean()`: `true` se o dígito verificador corresponder ao número-base; `false`, caso contrário.
 
 Exemplo:
 
@@ -461,25 +415,19 @@ false
 
 ## CEP
 
-Um CEP nao possui digito verificador: a validacao e puramente estrutural,
-com exatamente 8 digitos, e nao informa se o codigo postal realmente existe.
-Funcoes de busca de endereco via ViaCEP estao planejadas para uma futura versao.
+Um CEP não possui dígito verificador: a validação é puramente estrutural, com exatamente 8 dígitos, e não informa se o código postal realmente existe. Funções de busca de endereço via ViaCEP estão planejadas para uma futura versão.
 
 ### is_valid_cep
 
-Retorna se o CEP fornecido e valido: um binario com exatamente 8 digitos.
-Qualquer sequencia de 8 digitos e estruturalmente valida, incluindo repeticoes
-como `<<"00000000">>`.
+Retorna se o CEP informado é válido: um binário com exatamente 8 dígitos. Qualquer sequência de 8 dígitos é estruturalmente válida, incluindo repetições como `<<"00000000">>`.
 
 Argumentos:
 
-- `Cep` (`term()`): o CEP a ser validado, um binario de 8 digitos. Qualquer
-  outro termo retorna `false` e a funcao nunca gera excecao.
+- `Cep` (`term()`): o CEP a ser validado, em um binário de 8 dígitos. Qualquer outro termo retorna `false`, e a função nunca gera exceção.
 
 Retorna:
 
-- `boolean()`: `true` se a entrada tiver exatamente 8 digitos, `false` caso contrario.
-  Os simbolos de formatacao nao sao removidos; limpe a entrada com `remove_symbols_cep/1` antes.
+- `boolean()`: `true` se a entrada tiver exatamente 8 dígitos; `false`, caso contrário. Os símbolos de formatação não são removidos; limpe a entrada com `remove_symbols_cep/1` antes.
 
 Exemplo:
 
@@ -494,16 +442,15 @@ false
 
 ### format_cep
 
-Formata um CEP valido para exibicao, adicionando o hifen padrao (`NNNNN-NNN`).
+Formata um CEP válido para exibição, adicionando o hífen padrão (`NNNNN-NNN`).
 
 Argumentos:
 
-- `Cep` (`binary()`): um binario de CEP contendo apenas numeros.
+- `Cep` (`binary()`): um binário de CEP contendo apenas números.
 
 Retorna:
 
-- `{ok, Formatted}` com o CEP formatado, ou `{error, invalid}` se a entrada
-  nao for um CEP valido.
+- `{ok, Formatted}` com o CEP formatado, ou `{error, invalid}` se a entrada não for um CEP válido.
 
 Exemplo:
 
@@ -516,16 +463,15 @@ Exemplo:
 
 ### remove_symbols_cep
 
-Remove os simbolos `.` e `-` de uma string de CEP. Apenas esses dois caracteres
-sao removidos; qualquer outro e preservado.
+Remove os símbolos `.` e `-` de uma string de CEP. Apenas esses dois caracteres são removidos; qualquer outro é preservado.
 
 Argumentos:
 
-- `Cep` (`binary()`): o binario de CEP contendo simbolos a serem removidos.
+- `Cep` (`binary()`): o binário de CEP contendo símbolos a serem removidos.
 
 Retorna:
 
-- `binary()`: um novo binario com os simbolos especificados removidos.
+- `binary()`: um novo binário com os símbolos especificados removidos.
 
 Exemplo:
 
@@ -536,12 +482,11 @@ Exemplo:
 
 ### generate_cep
 
-Gera um CEP aleatorio como binario contendo apenas numeros. Cada digito e sorteado
-de forma independente, entao os resultados podem comecar com zero.
+Gera um CEP aleatório como binário contendo apenas números. Cada dígito é sorteado de forma independente, então os resultados podem começar com zero.
 
 Retorna:
 
-- `binary()`: um CEP aleatorio de 8 digitos.
+- `binary()`: um CEP aleatório de 8 dígitos.
 
 Exemplo:
 
@@ -554,31 +499,25 @@ Exemplo:
 
 ## Telefone
 
-Numeros de telefone brasileiros sao tratados sem o codigo do pais `+55` e com
-o DDD de dois digitos incluido. Existem dois formatos:
+Números de telefone brasileiros são tratados sem o código do país `+55` e com o DDD de dois dígitos incluído. Existem dois formatos:
 
-| Tipo | Digitos | Formato |
+| Tipo | Dígitos | Formato |
 |---|---|---|
-| celular | 11 | DDD (1-9 cada) + `9` + 8 digitos |
-| fixo | 10 | DDD (1-9 cada) + um digito de 2-5 + 7 digitos |
+| celular | 11 | DDD (1-9 cada) + `9` + 8 dígitos |
+| fixo | 10 | DDD (1-9 cada) + um dígito de 2-5 + 7 dígitos |
 
 ### is_valid_phone
 
-Retorna se o numero de telefone fornecido e valido, aceitando qualquer um dos formatos
-na versao de um argumento, ou um formato especifico quando o atom `mobile` ou `landline`
-e informado. A funcao nao verifica se o numero realmente existe. Os simbolos nao sao
-removidos; limpe a entrada com `remove_symbols_phone/1` antes.
+Retorna se o número de telefone informado é válido, aceitando qualquer um dos formatos na versão de um argumento, ou um formato específico quando o átomo `mobile` ou `landline` é informado. A função não verifica se o número realmente existe. Os símbolos não são removidos; limpe a entrada com `remove_symbols_phone/1` antes.
 
 Argumentos:
 
-- `Phone` (`term()`): o numero de telefone a ser validado, apenas digitos.
-  Qualquer termo que nao seja binario retorna `false` e a funcao nunca gera excecao.
-- `Type` (`mobile | landline`, opcional): restringe a validacao a um dos formatos.
-  Qualquer outro valor gera excecao.
+- `Phone` (`term()`): o número de telefone a ser validado, contendo apenas dígitos. Qualquer termo que não seja binário retorna `false`, e a função nunca gera exceção.
+- `Type` (`mobile | landline`, opcional): restringe a validação a um dos formatos. Qualquer outro valor gera exceção.
 
 Retorna:
 
-- `boolean()`: `true` se o numero corresponder ao formato esperado, `false` caso contrario.
+- `boolean()`: `true` se o número corresponder ao formato esperado; `false`, caso contrário.
 
 Exemplo:
 
@@ -595,17 +534,15 @@ false
 
 ### format_phone
 
-Formata um numero de telefone valido para exibicao: DDD entre parenteses
-(sem espaco depois deles) e um hifen antes dos ultimos quatro digitos.
+Formata um número de telefone válido para exibição: DDD entre parênteses (sem espaço depois deles) e um hífen antes dos últimos quatro dígitos.
 
 Argumentos:
 
-- `Phone` (`binary()`): um numero de telefone contendo apenas digitos.
+- `Phone` (`binary()`): um número de telefone contendo apenas dígitos.
 
 Retorna:
 
-- `{ok, Formatted}` com o numero formatado, ou `{error, invalid}` se a entrada
-  nao for um numero de telefone valido.
+- `{ok, Formatted}` com o número formatado, ou `{error, invalid}` se a entrada não for um número de telefone válido.
 
 Exemplo:
 
@@ -618,16 +555,15 @@ Exemplo:
 
 ### remove_symbols_phone
 
-Remove pontuacao comum de uma string de telefone: `(`, `)`, `-`, `+` e espacos.
-Pontos NAO sao removidos.
+Remove a pontuação comum de uma string de telefone: `(`, `)`, `-`, `+` e espaços. Pontos NÃO são removidos.
 
 Argumentos:
 
-- `Phone` (`binary()`): o numero de telefone contendo simbolos a serem removidos.
+- `Phone` (`binary()`): o número de telefone contendo símbolos a serem removidos.
 
 Retorna:
 
-- `binary()`: um novo binario com os simbolos especificados removidos.
+- `binary()`: um novo binário com os símbolos especificados removidos.
 
 Exemplo:
 
@@ -638,18 +574,15 @@ Exemplo:
 
 ### remove_international_dialing_code
 
-Remove o codigo internacional brasileiro (`55`) de um numero de telefone: se a entrada
-contiver `55` e tiver mais de 11 caracteres (ignorando espacos), a primeira ocorrencia
-de `55` e removida; caso contrario, a entrada e retornada sem alteracoes. Note as bordas:
-um `+` inicial e preservado, e o `55` removido e a primeira ocorrencia onde quer que apareca.
+Remove o código internacional brasileiro (`55`) de um número de telefone: se a entrada contiver `55` e tiver mais de 11 caracteres (ignorando espaços), a primeira ocorrência de `55` é removida; caso contrário, a entrada é retornada sem alterações. Observe os casos de borda: um `+` inicial é preservado, e o `55` removido é a primeira ocorrência, esteja ela onde estiver.
 
 Argumentos:
 
-- `Phone` (`binary()`): o numero de telefone, possivelmente com o codigo internacional.
+- `Phone` (`binary()`): o número de telefone, possivelmente com o código internacional.
 
 Retorna:
 
-- `binary()`: o numero sem o codigo internacional, ou a entrada original.
+- `binary()`: o número sem o código internacional, ou a própria entrada original.
 
 Exemplo:
 
@@ -662,12 +595,11 @@ Exemplo:
 
 ### generate_phone
 
-Gera um numero de telefone valido aleatorio, de tipo aleatorio sem argumentos,
-ou do tipo informado (`mobile` ou `landline`).
+Gera um número de telefone válido aleatório, de tipo aleatório quando chamada sem argumentos, ou do tipo informado (`mobile` ou `landline`).
 
 Retorna:
 
-- `binary()`: um numero de telefone valido aleatorio.
+- `binary()`: um número de telefone válido aleatório.
 
 Exemplo:
 
@@ -682,26 +614,19 @@ Exemplo:
 
 ## Passaporte
 
-Um numero de passaporte brasileiro possui 2 letras maiusculas seguidas de 6 digitos.
-Nao ha digito verificador, entao a validade nao informa existencia. Note a divisao de
-responsabilidades: `is_valid_passport` e estrita (sensivel a caixa e sem remocao de simbolos),
-enquanto `format_passport` e mais tolerante, convertendo para maiusculas e removendo simbolos
-antes de validar. Assim, a mesma entrada pode falhar em uma e passar na outra.
+Um número de passaporte brasileiro possui 2 letras maiúsculas seguidas de 6 dígitos. Não há dígito verificador, então a validade não informa existência. Observe a divisão de responsabilidades: `is_valid_passport` é estrita (sensível a maiúsculas e minúsculas e sem remoção de símbolos), enquanto `format_passport` é mais tolerante, convertendo para maiúsculas e removendo símbolos antes de validar. Assim, a mesma entrada pode falhar em uma e passar na outra.
 
 ### is_valid_passport
 
-Retorna se o numero de passaporte fornecido e valido: exatamente 2 letras maiusculas
-seguidas de exatamente 6 digitos. Letras minusculas e simbolos tornam a entrada invalida.
-Use `format_passport/1` para normalizar antes, se necessario.
+Retorna se o número de passaporte informado é válido: exatamente 2 letras maiúsculas seguidas de exatamente 6 dígitos. Letras minúsculas e símbolos tornam a entrada inválida. Use `format_passport/1` para normalizar antes, se necessário.
 
 Argumentos:
 
-- `Passport` (`term()`): o numero de passaporte a ser validado. Qualquer termo
-  que nao seja binario retorna `false` e a funcao nunca gera excecao.
+- `Passport` (`term()`): o número de passaporte a ser validado. Qualquer termo que não seja binário retorna `false`, e a função nunca gera exceção.
 
 Retorna:
 
-- `boolean()`: `true` se a entrada corresponder ao formato, `false` caso contrario.
+- `boolean()`: `true` se a entrada corresponder ao formato; `false`, caso contrário.
 
 Exemplo:
 
@@ -716,18 +641,15 @@ false
 
 ### format_passport
 
-Normaliza e formata um numero de passaporte: converte letras ASCII para maiusculas,
-remove os simbolos `-`, `.` e espacos, e depois valida o resultado.
+Normaliza e formata um número de passaporte: converte letras ASCII para maiúsculas, remove os símbolos `-`, `.` e espaços, e depois valida o resultado.
 
 Argumentos:
 
-- `Passport` (`binary()`): um numero de passaporte, possivelmente com letras minusculas
-  ou simbolos.
+- `Passport` (`binary()`): um número de passaporte, possivelmente com letras minúsculas ou símbolos.
 
 Retorna:
 
-- `{ok, Formatted}` com o passaporte normalizado em maiusculas, ou
-  `{error, invalid}` se a entrada nao normalizar para um valor valido.
+- `{ok, Formatted}` com o passaporte normalizado em maiúsculas, ou `{error, invalid}` se a entrada não for normalizada para um valor válido.
 
 Exemplo:
 
@@ -740,16 +662,15 @@ Exemplo:
 
 ### remove_symbols_passport
 
-Remove os simbolos `-`, `.` e espacos de uma string de passaporte. Apenas esses
-tres caracteres sao removidos, e a caixa das letras e preservada.
+Remove os símbolos `-`, `.` e espaços de uma string de passaporte. Apenas esses três caracteres são removidos, e a caixa das letras é preservada.
 
 Argumentos:
 
-- `Passport` (`binary()`): a string de passaporte contendo simbolos a serem removidos.
+- `Passport` (`binary()`): a string de passaporte contendo símbolos a serem removidos.
 
 Retorna:
 
-- `binary()`: um novo binario com os simbolos especificados removidos.
+- `binary()`: um novo binário com os símbolos especificados removidos.
 
 Exemplo:
 
@@ -760,12 +681,11 @@ Exemplo:
 
 ### generate_passport
 
-Gera um numero de passaporte valido aleatorio: 2 letras maiusculas uniformes
-seguidas de 6 digitos uniformes.
+Gera um número de passaporte válido aleatório: 2 letras maiúsculas uniformes seguidas de 6 dígitos uniformes.
 
 Retorna:
 
-- `binary()`: um numero de passaporte valido aleatorio.
+- `binary()`: um número de passaporte válido aleatório.
 
 Exemplo:
 
@@ -776,33 +696,29 @@ Exemplo:
 <<"ZN446187">>
 ```
 
-## Placa de Veiculo
+## Placa de Veículo
 
-Existem dois padroes brasileiros de placa:
+Existem dois padrões brasileiros de placa:
 
-| Tipo atomico | Padrao | Exemplo |
+| Tipo atômico | Padrão | Exemplo |
 |---|---|---|
-| `old_format` | `LLLNNNN` - 3 letras + 4 digitos | `ABC1234` |
-| `mercosul` | `LLLNLNN` - 3 letras, digito, letra, 2 digitos | `ABC1D23` |
+| `old_format` | `LLLNNNN` - 3 letras + 4 dígitos | `ABC1234` |
+| `mercosul` | `LLLNLNN` - 3 letras, dígito, letra, 2 dígitos | `ABC1D23` |
 
-A validacao ignora caixa das letras e remove espacos nas extremidades; formatacao
-e conversao sempre retornam letras maiusculas.
+A validação ignora maiúsculas e minúsculas e remove espaços nas extremidades; formatação e conversão sempre retornam letras maiúsculas.
 
 ### is_valid_license_plate
 
-Retorna se a placa fornecida e valida, aceitando qualquer um dos padroes na forma
-de um argumento, ou um padrao especifico quando o tipo atomico e informado.
+Retorna se a placa informada é válida, aceitando qualquer um dos padrões na forma de um argumento, ou um padrão específico quando o tipo atômico é informado.
 
 Argumentos:
 
-- `Plate` (`term()`): a placa a ser validada. Qualquer termo que nao seja binario
-  retorna `false` e a funcao nunca gera excecao.
-- `Type` (`old_format | mercosul`, opcional): restringe a validacao a um dos padroes.
-  Qualquer outro valor gera excecao.
+- `Plate` (`term()`): a placa a ser validada. Qualquer termo que não seja binário retorna `false`, e a função nunca gera exceção.
+- `Type` (`old_format | mercosul`, opcional): restringe a validação a um dos padrões. Qualquer outro valor gera exceção.
 
 Retorna:
 
-- `boolean()`: `true` se a placa corresponder ao padrao esperado.
+- `boolean()`: `true` se a placa corresponder ao padrão esperado.
 
 Exemplo:
 
@@ -819,17 +735,15 @@ false
 
 ### format_license_plate
 
-Formata uma placa valida para exibicao: placas do formato antigo recebem um hifen
-apos as letras, enquanto placas Mercosul permanecem sem separador, ambas em maiusculas.
+Formata uma placa válida para exibição: placas do formato antigo recebem um hífen após as letras, enquanto placas Mercosul permanecem sem separador, ambas em maiúsculas.
 
 Argumentos:
 
-- `Plate` (`binary()`): uma placa de veiculo, em qualquer caixa de letras.
+- `Plate` (`binary()`): uma placa de veículo, com letras em qualquer caixa.
 
 Retorna:
 
-- `{ok, Formatted}` com a placa formatada, ou `{error, invalid}` se a entrada
-  nao corresponder a nenhum dos padroes.
+- `{ok, Formatted}` com a placa formatada, ou `{error, invalid}` se a entrada não corresponder a nenhum dos padrões.
 
 Exemplo:
 
@@ -842,16 +756,15 @@ Exemplo:
 
 ### remove_symbols_license_plate
 
-Remove o hifen (`-`) de uma string de placa. Apenas o hifen e removido;
-qualquer outro caractere e preservado.
+Remove o hífen (`-`) de uma string de placa. Apenas o hífen é removido; qualquer outro caractere é preservado.
 
 Argumentos:
 
-- `Plate` (`binary()`): a string da placa contendo hifens a serem removidos.
+- `Plate` (`binary()`): a string da placa contendo hífens a serem removidos.
 
 Retorna:
 
-- `binary()`: um novo binario com os hifens removidos.
+- `binary()`: um novo binário com os hífens removidos.
 
 Exemplo:
 
@@ -862,18 +775,15 @@ Exemplo:
 
 ### convert_license_plate_to_mercosul
 
-Converte uma placa do formato antigo para o padrao Mercosul, substituindo o digito
-na quinta posicao por uma letra (`0` -> `A`, `1` -> `B`, ... `9` -> `J`). Uma placa
-ja no formato Mercosul gera erro, em vez de ser tratada como no-op.
+Converte uma placa do formato antigo para o padrão Mercosul, substituindo o dígito na quinta posição por uma letra (`0` -> `A`, `1` -> `B`, ... `9` -> `J`). Uma placa já no formato Mercosul gera erro, em vez de ser tratada como no-op.
 
 Argumentos:
 
-- `Plate` (`binary()`): uma placa do formato antigo, em qualquer caixa de letras.
+- `Plate` (`binary()`): uma placa do formato antigo, com letras em qualquer caixa.
 
 Retorna:
 
-- `{ok, Converted}` com a placa Mercosul convertida, ou `{error, invalid}`
-  se a entrada nao for uma placa valida do formato antigo.
+- `{ok, Converted}` com a placa Mercosul convertida, ou `{error, invalid}` se a entrada não for uma placa válida do formato antigo.
 
 Exemplo:
 
@@ -886,18 +796,15 @@ Exemplo:
 
 ### get_format_license_plate
 
-Detecta o padrao de uma placa, retornando o atom correspondente (`old_format`
-para `LLLNNNN` e `mercosul` para `LLLNLNN`). O resultado pode ser usado diretamente
-em `is_valid_license_plate/2`.
+Detecta o padrão de uma placa, retornando o átomo correspondente (`old_format` para `LLLNNNN` e `mercosul` para `LLLNLNN`). O resultado pode ser usado diretamente em `is_valid_license_plate/2`.
 
 Argumentos:
 
-- `Plate` (`binary()`): a placa a ser inspecionada, em qualquer caixa de letras.
+- `Plate` (`binary()`): a placa a ser inspecionada, com letras em qualquer caixa.
 
 Retorna:
 
-- `{ok, old_format | mercosul}`, ou `{error, invalid}` se a entrada nao
-  corresponder a nenhum dos padroes.
+- `{ok, old_format | mercosul}`, ou `{error, invalid}` se a entrada não corresponder a nenhum dos padrões.
 
 Exemplo:
 
@@ -910,13 +817,11 @@ Exemplo:
 
 ### generate_license_plate
 
-Gera uma placa valida aleatoria, Mercosul sem argumentos, ou no padrao fornecido
-(`<<"LLLNNNN">>` ou `<<"LLLNLNN">>`, sem diferenciar maiusculas de minusculas).
+Gera uma placa válida aleatória, Mercosul quando chamada sem argumentos, ou no padrão informado (`<<"LLLNNNN">>` ou `<<"LLLNLNN">>`, sem diferenciar maiúsculas de minúsculas).
 
 Retorna:
 
-- `{ok, Plate}` com a placa gerada; a forma com padrao retorna `{error, invalid}`
-  para formatos desconhecidos.
+- `{ok, Plate}` com a placa gerada; a forma com padrão retorna `{error, invalid}` para formatos desconhecidos.
 
 Exemplo:
 
@@ -927,34 +832,29 @@ Exemplo:
 {ok,<<"BFX5517">>}
 ```
 
-## Titulo de Eleitor
+## Título de Eleitor
 
-Um titulo de eleitor brasileiro e lido da direita para a esquerda:
+Um título de eleitor brasileiro é lido da direita para a esquerda:
 
-| Campo | Digitos | Posicao |
+| Campo | Dígitos | Posição |
 |---|---|---|
-| numero sequencial | 8 (ou 9 em alguns titulos de SP/MG) | inicio |
-| unidade federativa | 2 | antes dos digitos verificadores |
-| digitos verificadores | 2 | final |
+| número sequencial | 8 (ou 9 em alguns títulos de SP/MG) | início |
+| unidade federativa | 2 | antes dos dígitos verificadores |
+| dígitos verificadores | 2 | final |
 
-Titulos normalmente possuem 12 digitos; titulos de Sao Paulo e Minas Gerais podem
-ter 13 (um digito sequencial extra que o checksum ignora). Os codigos de UF vao de
-`01` (SP) a `27` (TO), com `28` (`ZZ`) para titulos emitidos no exterior.
+Títulos normalmente possuem 12 dígitos; títulos de São Paulo e Minas Gerais podem ter 13 (um dígito sequencial extra que o checksum ignora). Os códigos de UF vão de `01` (SP) a `27` (TO), com `28` (`ZZ`) para títulos emitidos no exterior.
 
 ### is_valid_voter_id
 
-Retorna se o titulo de eleitor fornecido e valido: tamanho correto para sua UF,
-codigo em faixa valida, e ambos os digitos verificadores correspondendo ao valor esperado.
-Esta funcao nao verifica a existencia do titulo; ela apenas valida o formato da string.
+Retorna se o título de eleitor informado é válido: tamanho correto para sua UF, código em faixa válida, e ambos os dígitos verificadores correspondendo ao valor esperado. Esta função não verifica a existência do título; ela apenas valida o formato da string.
 
 Argumentos:
 
-- `VoterId` (`term()`): o titulo a ser validado, um binario de 12 ou 13 digitos.
-  Qualquer termo que nao seja binario retorna `false` e a funcao nunca gera excecao.
+- `VoterId` (`term()`): o título a ser validado, em um binário de 12 ou 13 dígitos. Qualquer termo que não seja binário retorna `false`, e a função nunca gera exceção.
 
 Retorna:
 
-- `boolean()`: `true` se o titulo for estruturalmente valido, `false` caso contrario.
+- `boolean()`: `true` se o título for estruturalmente válido; `false`, caso contrário.
 
 Exemplo:
 
@@ -969,17 +869,15 @@ true
 
 ### format_voter_id
 
-Formata um titulo de eleitor valido de 12 digitos para exibicao com espacos visuais
-(`NNNN NNNN NN NN`). Titulos validos de 13 digitos de SP/MG retornam `{error, invalid}`:
-como a mascara nao comporta o digito extra, eles sao rejeitados em vez de truncados.
+Formata um título de eleitor válido de 12 dígitos para exibição com espaços visuais (`NNNN NNNN NN NN`). Títulos válidos de 13 dígitos de SP/MG retornam `{error, invalid}`: como a máscara não comporta o dígito extra, eles são rejeitados em vez de truncados.
 
 Argumentos:
 
-- `VoterId` (`binary()`): um titulo de eleitor de 12 digitos contendo apenas numeros.
+- `VoterId` (`binary()`): um título de eleitor de 12 dígitos contendo apenas números.
 
 Retorna:
 
-- `{ok, Formatted}` com o titulo formatado, ou `{error, invalid}`.
+- `{ok, Formatted}` com o título formatado, ou `{error, invalid}`.
 
 Exemplo:
 
@@ -992,14 +890,11 @@ Exemplo:
 
 ### generate_voter_id
 
-Gera um titulo de eleitor valido aleatorio de 12 digitos, emitido no exterior (`ZZ`)
-sem argumentos, ou para a unidade federativa informada (codigo de duas letras,
-case-insensitive).
+Gera um título de eleitor válido aleatório de 12 dígitos, emitido no exterior (`ZZ`) quando chamada sem argumentos, ou para a unidade federativa informada (código de duas letras, sem diferenciar maiúsculas de minúsculas).
 
 Retorna:
 
-- `{ok, VoterId}` com o titulo gerado; a forma com UF retorna `{error, invalid}`
-  para codigos desconhecidos.
+- `{ok, VoterId}` com o título gerado; a forma com UF retorna `{error, invalid}` para códigos desconhecidos.
 
 Exemplo:
 
@@ -1016,37 +911,30 @@ Exemplo:
 
 Camilo Cunha de Azevedo <camilotk@gmail.com>
 
-# Novos Utilitarios e Reportar Bugs
+# Novos Utilitários e Reportar Bugs
 
-Caso queira sugerir novas funcionalidades ou reportar bugs, basta criar
-uma nova [issue][github-issues] e iremos lhe responder por la.
+Caso queira sugerir novas funcionalidades ou reportar bugs, basta criar uma nova [issue][github-issues], e iremos lhe responder por lá.
 
-(Para saber mais sobre github issues, confira a [documentacao oficial do GitHub][github-issues-doc]).
+(Para saber mais sobre GitHub Issues, confira a [documentação oficial do GitHub][github-issues-doc].)
 
-# Duvidas? Ideias?
+# Dúvidas? Ideias?
 
-Duvidas de como utilizar a biblioteca? Novas ideias para o projeto?
-Quer compartilhar algo com a gente? Fique a vontade para criar um topico no nosso
-[Discussions][github-discussions] que iremos interagir por la.
+Dúvidas sobre como utilizar a biblioteca? Novas ideias para o projeto? Quer compartilhar algo com a gente? Fique à vontade para criar um tópico em nosso [Discussions][github-discussions], que iremos interagir por lá.
 
-(Para saber mais sobre github discussions, confira a
-[documentacao oficial do GitHub][github-discussions-doc]).
+(Para saber mais sobre GitHub Discussions, confira a [documentação oficial do GitHub][github-discussions-doc].)
 
-# Contribuindo com o Codigo do Projeto
+# Contribuindo com o Código do Projeto
 
-Sua colaboracao e sempre muito bem-vinda! Enquanto este repositorio ainda nao possui um
-`CONTRIBUTING.md`, voce pode contribuir abrindo discussao, issue ou pull request com contexto
-claro sobre a proposta.
+Sua colaboração é sempre muito bem-vinda. Enquanto este repositório ainda não possui um `CONTRIBUTING.md`, você pode contribuir abrindo uma discussão, issue ou pull request com contexto claro sobre a proposta.
 
 Antes de abrir um PR, recomendamos:
 
-1. Garantir que o codigo compila com `rebar3 compile`.
+1. Garantir que o código compila com `rebar3 compile`.
 2. Rodar os testes com `rebar3 eunit --cover`.
 3. Rodar os testes de propriedade com `rebar3 proper -n 200 -c`.
-4. Verificar a analise estatica com `rebar3 xref`, `rebar3 dialyzer` e `rebar3 edoc`.
+4. Verificar a análise estática com `rebar3 xref`, `rebar3 dialyzer` e `rebar3 edoc`.
 
-Nao hesite em nos perguntar utilizando o [GitHub Discussions][github-discussions] caso
-haja qualquer dificuldade ou duvida. Toda ajuda conta.
+Não hesite em nos perguntar no [GitHub Discussions][github-discussions] caso haja qualquer dificuldade ou dúvida. Toda ajuda conta.
 
 Vamos construir juntos!
 
