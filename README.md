@@ -31,7 +31,7 @@ Adicione `brutils` ao seu `rebar.config`:
 
 ```erlang
 {deps, [
-  {brutils, "0.1.1"}
+  {brutils, "0.1.2"}
 ]}. 
 ```
 
