@@ -8,7 +8,7 @@
 %% All functions operate on UTF-8 binaries.
 -module(brutils_license_plate).
 
--export([remove_symbols/1]).
+-export([remove_symbols/1, is_valid/1, is_valid/2]).
 
 -type plate_type() :: old_format | mercosul.
 %% The two plate patterns: `old_format' is `LLLNNNN', `mercosul' is
@@ -39,3 +39,102 @@
 -spec remove_symbols(binary()) -> binary().
 remove_symbols(Plate) when is_binary(Plate) ->
     << <<C>> || <<C>> <= Plate, C =/= $- >>.
+
+%% @doc Returns whether the given term is a valid license plate of
+%% either pattern, old format or Mercosul.
+%%
+%% Surrounding ASCII whitespace is trimmed and letter case is
+%% ignored, so `<<"  abc1234 ">>' is valid — but embedded symbols
+%% such as the display dash are not stripped. Existence is never
+%% verified. The function is total: any non-binary term returns
+%% `false' rather than raising.
+%%
+%% ```
+%% 1> brutils_license_plate:is_valid(<<"ABC1234">>).
+%% true
+%% 2> brutils_license_plate:is_valid(<<"abc1d23">>).
+%% true
+%% '''
+-spec is_valid(term()) -> boolean().
+is_valid(Plate) ->
+    is_valid(Plate, old_format) orelse is_valid(Plate, mercosul).
+
+%% @doc Returns whether the given term is a valid license plate of
+%% the given pattern: `old_format' (`LLLNNNN') or `mercosul'
+%% (`LLLNLNN').
+%%
+%% Trimming and case rules are those of {@link is_valid/1}. The type
+%% must be one of the two atoms; anything else is out of contract and
+%% raises.
+%%
+%% ```
+%% 1> brutils_license_plate:is_valid(<<"ABC1234">>, old_format).
+%% true
+%% 2> brutils_license_plate:is_valid(<<"ABC1234">>, mercosul).
+%% false
+%% '''
+-spec is_valid(term(), plate_type()) -> boolean().
+is_valid(Plate, old_format) when is_binary(Plate) ->
+    case normalize(Plate) of
+        <<L1, L2, L3, Digits:4/binary>>
+          when L1 >= $A, L1 =< $Z, L2 >= $A, L2 =< $Z, L3 >= $A, L3 =< $Z ->
+            all_digits(Digits);
+        _ ->
+            false
+    end;
+is_valid(_, old_format) ->
+    false;
+is_valid(Plate, mercosul) when is_binary(Plate) ->
+    case normalize(Plate) of
+        <<L1, L2, L3, D1, L4, D2, D3>>
+          when L1 >= $A, L1 =< $Z, L2 >= $A, L2 =< $Z, L3 >= $A, L3 =< $Z,
+               D1 >= $0, D1 =< $9, L4 >= $A, L4 =< $Z,
+               D2 >= $0, D2 =< $9, D3 >= $0, D3 =< $9 ->
+            true;
+        _ ->
+            false
+    end;
+is_valid(_, mercosul) ->
+    false.
+
+%%--------------------------------------------------------------------
+%% Internal
+%%--------------------------------------------------------------------
+
+%% Trim surrounding ASCII whitespace and uppercase ASCII letters —
+%% the normalization every validating function applies first.
+-spec normalize(binary()) -> binary().
+normalize(Plate) ->
+    ascii_uppercase(trim(Plate)).
+
+-spec trim(binary()) -> binary().
+trim(<<C, Rest/binary>>) when C =:= $\s; C =:= $\t; C =:= $\n;
+                              C =:= $\r; C =:= $\f; C =:= $\v ->
+    trim(Rest);
+trim(Bin) ->
+    trim_trailing(Bin).
+
+-spec trim_trailing(binary()) -> binary().
+trim_trailing(Bin) when byte_size(Bin) > 0 ->
+    case binary:last(Bin) of
+        C when C =:= $\s; C =:= $\t; C =:= $\n;
+               C =:= $\r; C =:= $\f; C =:= $\v ->
+            trim_trailing(binary:part(Bin, 0, byte_size(Bin) - 1));
+        _ ->
+            Bin
+    end;
+trim_trailing(Bin) ->
+    Bin.
+
+-spec ascii_uppercase(binary()) -> binary().
+ascii_uppercase(Bin) ->
+    << <<(upcase(C))>> || <<C>> <= Bin >>.
+
+-spec upcase(byte()) -> byte().
+upcase(C) when C >= $a, C =< $z -> C - 32;
+upcase(C) -> C.
+
+-spec all_digits(binary()) -> boolean().
+all_digits(<<C, Rest/binary>>) when C >= $0, C =< $9 -> all_digits(Rest);
+all_digits(<<>>) -> true;
+all_digits(_) -> false.
