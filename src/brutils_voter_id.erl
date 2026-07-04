@@ -11,7 +11,7 @@
 %% All functions operate on UTF-8 binaries.
 -module(brutils_voter_id).
 
--export([is_valid/1, format/1]).
+-export([is_valid/1, format/1, generate/0, generate/1]).
 
 -type voter_id() :: <<_:96>>.
 %% A generated voter id: always 12 digits. (Valid input may also be
@@ -78,9 +78,94 @@ format(VoterId) when is_binary(VoterId) ->
             {error, invalid}
     end.
 
+%% @doc Generates a random valid voter id for a title issued abroad
+%% (federative union `ZZ').
+%%
+%% Equivalent to `generate(<<"ZZ">>)', but with no error case — the
+%% default is always a known federative union.
+%%
+%% ```
+%% 1> brutils_voter_id:generate().
+%% {ok,<<"721636202895">>}
+%% '''
+-spec generate() -> {ok, voter_id()}.
+generate() ->
+    {ok, from_uf_code(<<"28">>)}.
+
+%% @doc Generates a random valid voter id for the given federative
+%% union (two-letter code, case insensitive; `<<"ZZ">>' for titles
+%% issued abroad).
+%%
+%% The result always has 12 digits — the 13-digit São Paulo / Minas
+%% Gerais variant is never generated. Unknown codes yield
+%% `{error, invalid}'.
+%%
+%% ```
+%% 1> brutils_voter_id:generate(<<"sp">>).
+%% {ok,<<"454300320183">>}
+%% 2> brutils_voter_id:generate(<<"XX">>).
+%% {error,invalid}
+%% '''
+-spec generate(binary()) -> {ok, voter_id()} | {error, invalid}.
+generate(Uf) when is_binary(Uf) ->
+    case uf_code(ascii_uppercase(Uf)) of
+        {ok, Code} -> {ok, from_uf_code(Code)};
+        error -> {error, invalid}
+    end.
+
 %%--------------------------------------------------------------------
 %% Internal
 %%--------------------------------------------------------------------
+
+%% Build a valid 12-digit id: random 8-digit sequential, the given
+%% federative-union code, both check digits.
+-spec from_uf_code(<<_:16>>) -> voter_id().
+from_uf_code(Code) ->
+    N = rand:uniform(100000000) - 1,
+    Seq8 = list_to_binary(io_lib:format("~8..0b", [N])),
+    Vd1 = vd1(Seq8, Code),
+    Vd2 = vd2(Code, Vd1),
+    <<Seq8/binary, Code/binary, ($0 + Vd1), ($0 + Vd2)>>.
+
+%% The TSE numbering of the federative unions.
+-spec uf_code(binary()) -> {ok, <<_:16>>} | error.
+uf_code(<<"SP">>) -> {ok, <<"01">>};
+uf_code(<<"MG">>) -> {ok, <<"02">>};
+uf_code(<<"RJ">>) -> {ok, <<"03">>};
+uf_code(<<"RS">>) -> {ok, <<"04">>};
+uf_code(<<"BA">>) -> {ok, <<"05">>};
+uf_code(<<"PR">>) -> {ok, <<"06">>};
+uf_code(<<"CE">>) -> {ok, <<"07">>};
+uf_code(<<"PE">>) -> {ok, <<"08">>};
+uf_code(<<"SC">>) -> {ok, <<"09">>};
+uf_code(<<"GO">>) -> {ok, <<"10">>};
+uf_code(<<"MA">>) -> {ok, <<"11">>};
+uf_code(<<"PB">>) -> {ok, <<"12">>};
+uf_code(<<"PA">>) -> {ok, <<"13">>};
+uf_code(<<"ES">>) -> {ok, <<"14">>};
+uf_code(<<"PI">>) -> {ok, <<"15">>};
+uf_code(<<"RN">>) -> {ok, <<"16">>};
+uf_code(<<"AL">>) -> {ok, <<"17">>};
+uf_code(<<"MT">>) -> {ok, <<"18">>};
+uf_code(<<"MS">>) -> {ok, <<"19">>};
+uf_code(<<"DF">>) -> {ok, <<"20">>};
+uf_code(<<"SE">>) -> {ok, <<"21">>};
+uf_code(<<"AM">>) -> {ok, <<"22">>};
+uf_code(<<"RO">>) -> {ok, <<"23">>};
+uf_code(<<"AC">>) -> {ok, <<"24">>};
+uf_code(<<"AP">>) -> {ok, <<"25">>};
+uf_code(<<"RR">>) -> {ok, <<"26">>};
+uf_code(<<"TO">>) -> {ok, <<"27">>};
+uf_code(<<"ZZ">>) -> {ok, <<"28">>};
+uf_code(_) -> error.
+
+-spec ascii_uppercase(binary()) -> binary().
+ascii_uppercase(Bin) ->
+    << <<(upcase(C))>> || <<C>> <= Bin >>.
+
+-spec upcase(byte()) -> byte().
+upcase(C) when C >= $a, C =< $z -> C - 32;
+upcase(C) -> C.
 
 %% The federative-union code: bytes [-4, -2) from the right.
 -spec fu(binary()) -> binary().

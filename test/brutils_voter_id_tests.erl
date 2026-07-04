@@ -152,3 +152,47 @@ format_invalid_voter_id_test() ->
 format_non_binary_is_out_of_contract_test() ->
     ?assertError(function_clause, brutils_voter_id:format(690847092828)),
     ?assertError(function_clause, brutils_voter_id:format("690847092828")).
+
+%%--------------------------------------------------------------------
+%% generate/0,1
+%%--------------------------------------------------------------------
+
+ufs_with_codes() ->
+    [{<<"SP">>, <<"01">>}, {<<"MG">>, <<"02">>}, {<<"RJ">>, <<"03">>},
+     {<<"RS">>, <<"04">>}, {<<"BA">>, <<"05">>}, {<<"PR">>, <<"06">>},
+     {<<"CE">>, <<"07">>}, {<<"PE">>, <<"08">>}, {<<"SC">>, <<"09">>},
+     {<<"GO">>, <<"10">>}, {<<"MA">>, <<"11">>}, {<<"PB">>, <<"12">>},
+     {<<"PA">>, <<"13">>}, {<<"ES">>, <<"14">>}, {<<"PI">>, <<"15">>},
+     {<<"RN">>, <<"16">>}, {<<"AL">>, <<"17">>}, {<<"MT">>, <<"18">>},
+     {<<"MS">>, <<"19">>}, {<<"DF">>, <<"20">>}, {<<"SE">>, <<"21">>},
+     {<<"AM">>, <<"22">>}, {<<"RO">>, <<"23">>}, {<<"AC">>, <<"24">>},
+     {<<"AP">>, <<"25">>}, {<<"RR">>, <<"26">>}, {<<"TO">>, <<"27">>},
+     {<<"ZZ">>, <<"28">>}].
+
+generate_covers_all_28_ufs_test() ->
+    lists:foreach(
+      fun({Uf, Code}) ->
+              {ok, V} = brutils_voter_id:generate(Uf),
+              ?assertEqual(12, byte_size(V)),
+              ?assert(brutils_voter_id:is_valid(V)),
+              ?assertEqual(Code, binary:part(V, 8, 2))
+      end,
+      ufs_with_codes()).
+
+generate_default_is_zz_test() ->
+    {ok, V} = brutils_voter_id:generate(),
+    ?assert(brutils_voter_id:is_valid(V)),
+    ?assertEqual(<<"28">>, binary:part(V, 8, 2)).
+
+generate_uf_is_case_insensitive_test() ->
+    {ok, V} = brutils_voter_id:generate(<<"sp">>),
+    ?assertEqual(<<"01">>, binary:part(V, 8, 2)).
+
+generate_rejects_unknown_uf_test() ->
+    ?assertEqual({error, invalid}, brutils_voter_id:generate(<<"XX">>)),
+    ?assertEqual({error, invalid}, brutils_voter_id:generate(<<"S">>)),
+    ?assertEqual({error, invalid}, brutils_voter_id:generate(<<>>)).
+
+generate_is_random_test() ->
+    Ids = [element(2, brutils_voter_id:generate()) || _ <- lists:seq(1, 100)],
+    ?assert(length(lists:usort(Ids)) > 1).
