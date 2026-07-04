@@ -71,6 +71,13 @@ domain module directly.
   - [format_passport](#format_passport)
   - [remove_symbols_passport](#remove_symbols_passport)
   - [generate_passport](#generate_passport)
+- [License plate](#license-plate)
+  - [is_valid_license_plate](#is_valid_license_plate)
+  - [format_license_plate](#format_license_plate)
+  - [remove_symbols_license_plate](#remove_symbols_license_plate)
+  - [convert_license_plate_to_mercosul](#convert_license_plate_to_mercosul)
+  - [get_format_license_plate](#get_format_license_plate)
+  - [generate_license_plate](#generate_license_plate)
 
 ## CPF
 
@@ -746,6 +753,157 @@ Example:
 <<"AP051847">>
 2> brutils:generate_passport().
 <<"ZN446187">>
+```
+
+## License plate
+
+Two Brazilian plate patterns exist:
+
+| Type atom | Pattern | Example |
+|---|---|---|
+| `old_format` | `LLLNNNN` — 3 letters + 4 digits | `ABC1234` |
+| `mercosul` | `LLLNLNN` — 3 letters, digit, letter, 2 digits | `ABC1D23` |
+
+Validation ignores letter case and trims surrounding whitespace; formatting
+and conversion emit uppercase.
+
+### is_valid_license_plate
+
+Returns whether the given plate is valid — either pattern for the
+one-argument form, or a specific one when the type atom is given.
+
+Args:
+
+- `Plate` (`term()`): the plate to be validated. Any non-binary term
+  returns `false` — the function never raises.
+- `Type` (`old_format | mercosul`, optional): restricts the check to one
+  pattern. Any other value raises.
+
+Returns:
+
+- `boolean()`: `true` if the plate matches the (requested) pattern.
+
+Example:
+
+```erlang
+1> brutils:is_valid_license_plate(<<"ABC1234">>).
+true
+2> brutils:is_valid_license_plate(<<"abc1d23">>).
+true
+3> brutils:is_valid_license_plate(<<"ABC-1234">>).
+false
+4> brutils:is_valid_license_plate(<<"ABC1234">>, mercosul).
+false
+```
+
+### format_license_plate
+
+Formats a valid plate for display: old-format plates get a dash after the
+letters, Mercosul plates come out bare — both uppercased.
+
+Args:
+
+- `Plate` (`binary()`): a license plate, any letter case.
+
+Returns:
+
+- `{ok, Formatted}` with the formatted plate, or `{error, invalid}` if the
+  input matches neither pattern.
+
+Example:
+
+```erlang
+1> brutils:format_license_plate(<<"abc1234">>).
+{ok,<<"ABC-1234">>}
+2> brutils:format_license_plate(<<"abc1e34">>).
+{ok,<<"ABC1E34">>}
+```
+
+### remove_symbols_license_plate
+
+Removes the dash (`-`) from a license plate string. Only the dash is
+removed; anything else is kept unchanged.
+
+Args:
+
+- `Plate` (`binary()`): the plate string containing dashes to be removed.
+
+Returns:
+
+- `binary()`: a new binary with the dashes removed.
+
+Example:
+
+```erlang
+1> brutils:remove_symbols_license_plate(<<"ABC-123">>).
+<<"ABC123">>
+```
+
+### convert_license_plate_to_mercosul
+
+Converts an old-format plate to the Mercosul pattern by replacing the digit
+at the fifth position with a letter (`0`→`A`, `1`→`B`, ... `9`→`J`). An
+already-Mercosul plate yields an error, not a no-op.
+
+Args:
+
+- `Plate` (`binary()`): an old-format plate, any letter case.
+
+Returns:
+
+- `{ok, Converted}` with the Mercosul plate, or `{error, invalid}` if the
+  input is not a valid old-format plate.
+
+Example:
+
+```erlang
+1> brutils:convert_license_plate_to_mercosul(<<"ABC4567">>).
+{ok,<<"ABC4F67">>}
+2> brutils:convert_license_plate_to_mercosul(<<"ABC1D23">>).
+{error,invalid}
+```
+
+### get_format_license_plate
+
+Detects the pattern of a license plate, returning the type atom
+(`old_format` for `LLLNNNN`, `mercosul` for `LLLNLNN`) — the result can be
+fed straight back into `is_valid_license_plate/2`.
+
+Args:
+
+- `Plate` (`binary()`): the plate to inspect, any letter case.
+
+Returns:
+
+- `{ok, old_format | mercosul}`, or `{error, invalid}` if the input
+  matches neither pattern.
+
+Example:
+
+```erlang
+1> brutils:get_format_license_plate(<<"abc1234">>).
+{ok,old_format}
+2> brutils:get_format_license_plate(<<"ABC1D23">>).
+{ok,mercosul}
+```
+
+### generate_license_plate
+
+Generates a random valid plate — Mercosul with no argument, or in the
+given pattern (`<<"LLLNNNN">>` or `<<"LLLNLNN">>`, case insensitive).
+
+Returns:
+
+- `{ok, Plate}` with the generated plate; the pattern form yields
+  `{error, invalid}` for unknown patterns.
+
+Example:
+
+```erlang
+1> brutils:generate_license_plate().
+{ok,<<"WMF1O31">>}
+2> brutils:generate_license_plate(<<"LLLNNNN">>).
+{ok,<<"BFX5517">>}
 ```
 
 ## Author
