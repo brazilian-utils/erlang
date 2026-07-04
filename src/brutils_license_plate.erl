@@ -229,9 +229,12 @@ from_pattern(Pattern) ->
 normalize(Plate) ->
     ascii_uppercase(trim(Plate)).
 
+%% The ASCII whitespace set the reference's strip() removes.
+-define(IS_WS(C), (C =:= $\s orelse C =:= $\t orelse C =:= $\n
+                   orelse C =:= $\r orelse C =:= $\f orelse C =:= $\v)).
+
 -spec trim(binary()) -> binary().
-trim(<<C, Rest/binary>>) when C =:= $\s; C =:= $\t; C =:= $\n;
-                              C =:= $\r; C =:= $\f; C =:= $\v ->
+trim(<<C, Rest/binary>>) when ?IS_WS(C) ->
     trim(Rest);
 trim(Bin) ->
     trim_trailing(Bin).
@@ -239,8 +242,7 @@ trim(Bin) ->
 -spec trim_trailing(binary()) -> binary().
 trim_trailing(Bin) when byte_size(Bin) > 0 ->
     case binary:last(Bin) of
-        C when C =:= $\s; C =:= $\t; C =:= $\n;
-               C =:= $\r; C =:= $\f; C =:= $\v ->
+        C when ?IS_WS(C) ->
             trim_trailing(binary:part(Bin, 0, byte_size(Bin) - 1));
         _ ->
             Bin
